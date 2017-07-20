@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from IPython.display import clear_output
 import time
+from matplotlib import gridspec
 
 # import autograd functionality
 from autograd import grad as compute_grad   # The only autograd function you may ever need
@@ -27,12 +28,15 @@ class visualizer:
         num_frames = 300                          # number of slides to create - the input range [-3,3] is divided evenly by this number
         if 'num_frames' in args:
             num_frames = args['num_frames']
-            
+        
         # initialize figure
-        fig = plt.figure(figsize = (12,6))
+        fig = plt.figure(figsize = (16,8))
         artist = fig
-        ax1 = fig.add_subplot(121)
-        ax2 = fig.add_subplot(122)
+
+        # create subplot with 3 panels, plot input function in center plot
+        gs = gridspec.GridSpec(1, 2, width_ratios=[1,1],wspace=0.3, hspace=0.05) 
+        ax1 = plt.subplot(gs[0]);
+        ax2 = plt.subplot(gs[1]); 
 
         # generate a range of values over which to plot input function, and derivatives
         w_plot = np.linspace(-3,3,200)                  # input range for original function
@@ -90,8 +94,8 @@ class visualizer:
             ax1.set_ylim([min(g_plot) - ggap,max(g_plot) + ggap])
             
             # label axes
-            ax1.set_xlabel('$w$',fontsize = 17)
-            ax1.set_ylabel('$g(w)$',fontsize = 17)
+            ax1.set_xlabel('$w$',fontsize = 20)
+            ax1.set_ylabel('$g(w)$',fontsize = 20,rotation = 0,labelpad = 25)
             
             #### right plot: plot the derivative function ####
             # get current values plotted so far
@@ -111,8 +115,8 @@ class visualizer:
             ax2.set_ylim([min(grad_plot) - grad_gap,max(grad_plot) + grad_gap])
             
             # label axes
-            ax2.set_xlabel('$w$',fontsize = 17)
-            ax2.set_ylabel('$g^{\prime}(w)$',fontsize = 17)
+            ax2.set_xlabel('$w$',fontsize = 20)
+            ax2.set_ylabel(r'$\frac{\mathrm{d}}{\mathrm{d}w}g(w)$',fontsize = 20,rotation = 0,labelpad = 25)
             return artist,
         
         anim = animation.FuncAnimation(fig, animate,frames=len(w_vals), interval=len(w_vals), blit=True)
