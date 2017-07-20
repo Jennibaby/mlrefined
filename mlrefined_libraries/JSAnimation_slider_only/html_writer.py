@@ -67,6 +67,17 @@ JS_INCLUDE = """
     document.getElementById(this.slider_id).value = this.current_frame;
   }
   
+    /* slider */ 
+    var elem = document.querySelector('input[type="range"]');
+
+    var rangeValue = function(){
+      var newValue = elem.value;
+      var target = document.querySelector('.value');
+      target.innerHTML = newValue;
+    }
+
+    elem.addEventListener("input", rangeValue);  
+  
   
   
 </script>
@@ -74,12 +85,16 @@ JS_INCLUDE = """
     
 
 DISPLAY_TEMPLATE = """
-<div class="animation" align="center">
+
+<!-- slider -->
+<link rel="stylesheet" type="text/css" href="../../mlrefined_libraries/JSAnimation_slider_only/icons/mystyle.css">
+
+<div class= "animation" align="center">
     <img id="_anim_img{id}">
     <br>
-    <input id="_anim_slider{id}" type="range" style="width:350px" name="points" min="0" max="1" step="1" value="0" oninput="anim{id}.set_frame(parseInt(this.value));"></input>
-    <br>
-
+    <input class="range-slider__range" id="_anim_slider{id}" type="range" style="width:350px" name="points" min="0" max="1" step="1" value="0" oninput="anim{id}.set_frame(parseInt(this.value));"></input>
+    <!-- <div class="value">0</div> -->
+    <br><br>
 </div>
 
 
