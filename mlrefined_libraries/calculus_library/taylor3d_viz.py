@@ -51,10 +51,10 @@ class visualizer:
         # create panel for input function
         ax2 = plt.subplot(gs[1], projection='3d')
 
-        ax2.set_xlabel('$w_0$',fontsize = 17)
-        ax2.set_ylabel('$w_1$',fontsize = 17)
+        ax2.set_xlabel('$w_1$',fontsize = 17)
+        ax2.set_ylabel('$w_2$',fontsize = 17)
         ax2.zaxis.set_rotate_label(False)  # disable automatic rotation
-        ax2.set_zlabel('$g(w_0,w_1)$',fontsize = 17,labelpad = 30,rotation = 0)
+        ax2.set_zlabel('$g(w_1,w_2)$',fontsize = 17,labelpad = 30,rotation = 0)
         
         # create plotting range
         r = np.linspace(-3,3,100)

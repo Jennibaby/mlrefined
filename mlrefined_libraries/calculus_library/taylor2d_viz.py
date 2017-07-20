@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from IPython.display import clear_output
 import time
+from matplotlib import gridspec
 
 # import autograd functionality
 from autograd import grad as compute_grad   # The only autograd function you may ever need
@@ -32,9 +33,16 @@ class visualizer:
             num_frames = args['num_frames']
             
         # initialize figure
-        fig = plt.figure(figsize = (6,6))
+        fig = plt.figure(figsize = (16,8))
         artist = fig
-        ax = fig.add_subplot(111)
+
+        # create subplot with 3 panels, plot input function in center plot
+        gs = gridspec.GridSpec(1, 3, width_ratios=[1,2, 1]) 
+        ax1 = plt.subplot(gs[0]); ax1.axis('off');
+        ax3 = plt.subplot(gs[2]); ax3.axis('off');
+
+        # plot input function
+        ax = plt.subplot(gs[1])
 
         # generate a range of values over which to plot input function, and derivatives
         w_plot = np.linspace(-3,3,200)                  # input range for original function
@@ -76,8 +84,8 @@ class visualizer:
             ax.scatter(w_val,g_val,s = 90,c = 'r',edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
             
             # label axes
-            ax.set_xlabel('$w$',fontsize = 17)
-            ax.set_ylabel('$g(w)$',fontsize = 17)
+            ax.set_xlabel('$w$',fontsize = 25)
+            ax.set_ylabel('$g(w)$',fontsize = 25,rotation = 0,labelpad = 25)
 
             #### should we plot first order approximation? ####
             if first_order == True:
@@ -85,7 +93,7 @@ class visualizer:
                 g_grad_val = self.grad(w_val)
 
                 # determine width to plot the approximation -- so its length == width
-                width = 9
+                width = 1
                 div = float(1 + g_grad_val**2)
                 w1 = w_val - math.sqrt(width/div)
                 w2 = w_val + math.sqrt(width/div)
