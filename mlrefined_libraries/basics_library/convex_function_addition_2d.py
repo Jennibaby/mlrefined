@@ -9,6 +9,8 @@ import matplotlib.animation as animation
 from autograd import grad as compute_grad   # The only autograd function you may ever need
 import autograd.numpy as np
 import math
+from IPython.display import clear_output
+import time
 
 class visualizer:
     '''
@@ -20,9 +22,9 @@ class visualizer:
         # user input functions to add
         self.g1 = args['g1']                            # input function
         self.g2 = args['g2']                            # input function
-        num_slides = 100
-        if 'num_slides' in args:
-            num_slides = args['num_slides']
+        num_frames = 100
+        if 'num_frames' in args:
+            num_frames = args['num_frames']
         min_range = -3
         if 'min_range' in args:
             min_range = args['min_range']
@@ -56,14 +58,23 @@ class visualizer:
         g2_max = np.amax(g2_plot) + g2_gap
        
         # decide on number of slides
-        alpha_vals = np.linspace(1,0,num_slides)
+        alpha_vals = np.linspace(1,0,num_frames)
+        print ('starting animation rendering...')
 
         # animation sub-function
-        def animate(t):
+        def animate(k):
             # clear panels for next slide
             ax1.cla()
             ax2.cla()
             ax3.cla()
+            
+            # print rendering update
+            if np.mod(k+1,25) == 0:
+                print ('rendering animation frame ' + str(k+1) + ' of ' + str(num_frames))
+            if k == num_frames - 1:
+                print ('animation rendering complete!')
+                time.sleep(1.5)
+                clear_output()
                                                 
             # plot function 1
             ax1.plot(w_plot,g1_plot,color = 'k',zorder = 1)                           
@@ -74,7 +85,7 @@ class visualizer:
             ax2.set_title("$g_2$",fontsize = 15)
 
             # plot combination of both
-            alpha = alpha_vals[t]
+            alpha = alpha_vals[k]
             g_combo = alpha*g1_plot + (1 - alpha)*g2_plot
             ax3.plot(w_plot,g_combo,color = 'k',zorder = 1) 
             ax3.set_title('$\\alpha\,g_1 + (1 - \\alpha)\,g_2$',fontsize = 15)
@@ -93,6 +104,6 @@ class visualizer:
         
             return artist,
 
-        anim = animation.FuncAnimation(fig, animate ,frames=num_slides, interval=num_slides, blit=True)
+        anim = animation.FuncAnimation(fig, animate ,frames=num_frames, interval=num_frames, blit=True)
 
         return(anim)

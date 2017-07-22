@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import gridspec
 from IPython.display import display, HTML
+import copy
 
 # custom plot for spiffing up plot of a single mathematical function
 def single_plot(table,**kwargs):
@@ -143,10 +144,201 @@ def double_plot(table1,table2,**kwargs):
     
     ax1.grid(True, which='both'), ax2.grid(True, which='both')
     ax1.axhline(y=0, color='k', linewidth=1), ax2.axhline(y=0, color='k', linewidth=1)
-    ax1.axvline(x=0, color='k', linewidth=1), ax2.axvline(x=0, color='k', linewidth=1)
+    ax2.axvline(x=0, color='k', linewidth=1), ax2.axvline(x=0, color='k', linewidth=1)
+    plt.show()
+    
+    
+# custom plot for spiffing up plot of a two mathematical functions
+def triple_plot(**kwargs): 
+    # get labeling arguments
+    xlabel = '$x$'
+    ylabel = []
+    if 'ylabel' in kwargs:
+        ylabel = kwargs['ylabel']
+    func_in = kwargs['func_in']
+    f1 = kwargs['f1']
+    f2 = kwargs['f2']
+    f3 = kwargs['f3']
+    title1 = kwargs['title1']
+    title2 = kwargs['title2']
+    title3 = kwargs['title3']
+    axes = False
+    if 'axes' in kwargs:
+        axes = kwargs['axes']
+    
+    # plot the functions 
+    fig = plt.figure(figsize = (15,4))
+    plt.style.use('ggplot')
+    ax1 = fig.add_subplot(131); ax2 = fig.add_subplot(132); ax3 = fig.add_subplot(133);
+    
+    # plot
+    ax1.plot(func_in, f1, c='r', linewidth=2,zorder = 3)
+    ax2.plot(func_in, f2, c='r', linewidth=2,zorder = 3)
+    ax3.plot(func_in, f3, c='r', linewidth=2,zorder = 3)
+
+    # plot x and y axes, and clean up
+    ax1.set_xlabel(xlabel,fontsize = 14)
+    ax2.set_xlabel(xlabel,fontsize = 14)
+    ax3.set_xlabel(xlabel,fontsize = 14)
+ 
+    # plot x and y axes, and clean up
+    ax1.set_title(title1,fontsize = 14)
+    ax2.set_title(title2,fontsize = 14)
+    ax3.set_title(title3,fontsize = 14)
+    
+    # clean up plots
+    ax1.grid(True, which='both'), ax2.grid(True, which='both'),  ax3.grid(True, which='both')
+    
+    if axes == True:
+        ax1.axhline(y=0, color='k', linewidth=1), ax2.axhline(y=0, color='k', linewidth=1), ax3.axhline(y=0, color='k', linewidth=1)
+        ax1.axvline(x=0, color='k', linewidth=1), ax2.axvline(x=0, color='k', linewidth=1), ax3.axvline(x=0, color='k', linewidth=1)
+
     plt.show()
     
 # plot pandas to html table centered in notebook
 def table_plot(table):
     # display table mcdonalds revenue values
     display(HTML('<center>' + table.to_html(index=False) + '</center>'))
+    
+# custom plot for spiffing up plot of a two mathematical functions
+def step_plot(table1,table2,**kwargs): 
+    # get labeling arguments
+    xlabel = '$w_1$'
+    ylabel_1 = '$g$'
+    ylabel_2 = '$g$'
+    table_3 = []
+    fontsize = 15
+    if 'xlabel' in kwargs:
+        xlabel = kwargs['xlabel']
+    if 'ylabel_1' in kwargs:
+        ylabel_1 = kwargs['ylabel_1']
+    if 'ylabel_2' in kwargs:
+        ylabel_2 = kwargs['ylabel_2']
+    if 'fontsize' in kwargs:
+        fontsize = kwargs['fontsize']
+    if 'table_3' in kwargs:
+        table_3 = kwargs['table_3']
+        
+    # plot the functions 
+    fig = plt.figure(figsize = (15,4))
+    plt.style.use('ggplot')
+    ax1 = fig.add_subplot(121); ax2 = fig.add_subplot(122); 
+    
+    # plot step function with continuous guider in left panel 
+    ax2.plot(table1[:,0], table1[:,1], c='r', linewidth=2,zorder = 3)
+    
+    # plot step function in true discontinuous fashion on the right
+    v = table2[:,1]
+    b = np.unique(v)
+    for unique_val in b:
+        quant2 = copy.deepcopy(v)
+        ind = np.argwhere(quant2 != unique_val)
+        ind = [a[0] for a in ind]
+        for a in ind:
+            quant2[a] = np.nan
+        ax1.plot(table2[:,0], quant2, c='r', linewidth=2,zorder = 3)
+    
+    # if original function given, plot that too
+    if np.size(table_3) > 0:
+        ax1.plot(table_3[:,0], table_3[:,1], c='b', linewidth=2,zorder = 2)
+        ax2.plot(table_3[:,0], table_3[:,1], c='b', linewidth=2,zorder = 2)
+
+    # plot x and y axes, and clean up
+    ax1.set_xlabel(xlabel,fontsize = fontsize)
+    ax1.set_ylabel(ylabel_1,fontsize = fontsize,rotation = 0,labelpad = 20)
+    ax2.set_xlabel(xlabel,fontsize = fontsize)
+    ax2.set_ylabel(ylabel_2,fontsize = fontsize,rotation = 0,labelpad = 20)
+    
+    ax1.grid(True, which='both'), ax2.grid(True, which='both')
+    ax1.axhline(y=0, color='k', linewidth=1), ax2.axhline(y=0, color='k', linewidth=1)
+    ax1.axvline(x=0, color='k', linewidth=1), ax2.axvline(x=0, color='k', linewidth=1)
+    plt.show()
+    
+    
+# 3d poly plotter
+def poly_3d_plotter():
+    # generate input values
+    s = np.linspace(-2,2,100)
+    x_1,x_2 = np.meshgrid(s,s)
+    degree_dict = {}
+
+    # build 4 polynomial basis elements
+    fig = plt.figure(num=None, figsize = (16,5), dpi=80, facecolor='w', edgecolor='k')
+
+    ### plot regression surface ###
+    p =  [0,1,1,2]
+    q = [1,2,1,3]
+    for m in range(4):
+        ax1 = plt.subplot(1,4,m+1,projection = '3d')
+        f_m = (x_1**p[m])*(x_2**q[m])
+        ax1.plot_surface(x_1,x_2,f_m,alpha = 0.1,color = 'b',zorder = 0,shade = True,linewidth=0.5,antialiased = True,cstride = 20, rstride = 15)
+        ax1.view_init(10,20)  
+        deg1 = ''
+        if p[m] == 1:
+            deg1 = 'x_1^{\,}'
+        if p[m] >=2:
+            deg1 = 'x_1^' + str(p[m])
+        deg2 = ''
+        if q[m] == 1:
+            deg2 = 'x_2^{\,}'
+        if q[m] >=2:
+            deg2 = 'x_2^' + str(q[m])
+        ax1.set_title('$f_'+str(m+1) + ' = ' + deg1 + deg2 + '$',fontsize = 18)
+        ax1.set_xlabel('$x_1$',fontsize = 15)
+        ax1.set_ylabel('$x_2$',fontsize = 15)
+
+    fig.subplots_adjust(left=0,right=1,bottom=0,top=1)   # remove whitespace around 3d figure
+
+    plt.show()
+
+# plot first few reciprocal functions
+def poly_2d_plotter():
+    ### plot the first four polynomials
+    # make a fine sampling of input values over the range [-5,5]
+    x = np.linspace(-5,5,100)
+    fig = plt.figure(figsize = (16,5))
+
+    for m in range(1,5):
+        # make next polynomial element
+        fm = x**m
+        fm_table = np.stack((x,fm),axis = 1)
+
+        # plot the current element
+        ax = fig.add_subplot(1,4,m)
+        ax.plot(fm_table[:,0],fm_table[:,1],color = [1 - 1/float(m),1/float(m),m/float(m)],linewidth = 5,zorder = 3)
+        ax.set_title('$f_'+str(m) + ' = x^' + str(m) + '$',fontsize = 18)
+
+        # clean up plot
+        ax.grid(True, which='both')
+        ax.axhline(y=0, color='k')
+        ax.axvline(x=0, color='k')
+        ax.set_xlabel('$x$',fontsize = 14)
+
+    plt.show()
+   
+# plot first few reciporical functions
+def recip_plotter():
+    fig = plt.figure(figsize = (16,5))
+
+    for m in range(1,5):
+        # make next polynomial element
+        ax = fig.add_subplot(1,4,m)
+
+        # plot the left side
+        x = np.linspace(-0.5,-0.05,100)
+        fm = 1/x**m
+        ax.plot(x,fm,color = [1 - 1/float(m),1/float(m),m/float(m)],linewidth = 5,zorder = 3)
+
+        # plot the right side
+        x = np.linspace(0.05,0.5,100)
+        fm = 1/x**m
+        ax.plot(x,fm,color = [1 - 1/float(m),1/float(m),m/float(m)],linewidth = 5,zorder = 3)
+
+        # clean up plot
+        ax.set_title('$f_'+str(m) + ' = x^{-' + str(m) + '}$',fontsize = 18)
+        ax.grid(True, which='both')
+        ax.axhline(y=0, color='k')
+        ax.axvline(x=0, color='k')
+        ax.set_xlabel('$x$',fontsize = 14)
+
+    plt.show()
