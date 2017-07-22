@@ -1,0 +1,67 @@
+			*,
+*:before,
+*:after {
+
+
+  border: none;
+  padding: 0;
+
+}
+
+
+form {
+  max-width: 170px;
+  margin: 0 auto;
+  font-size: 75%;
+
+}
+
+input {
+  position: relative;
+  top: 0;
+  background-color: #eee;
+  color: #333;
+  width: 100%;
+  height: 70px;
+  font-size: 1.5em;
+  text-align: center;
+  border-radius: 5px;
+  right: 16px;
+}
+
+button {
+  position: relative;
+  top: -70px;
+  right: 16px;
+  background-color: #279aff;
+  color: white;
+  width: 100%;
+  height: 70px;
+  margin: 0;
+  font-size: 1.5em;
+  border-radius: 5px;
+  letter-spacing: 1px;
+
+}
+
+button:hover {
+  background-color: #27B2FF;
+  cursor: pointer;
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+form:hover > input {
+  top: 70px;
+  border-radius: 0 0 5px 5px;
+  -webkit-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+  color: #333;
+}
+
+form:hover > button {
+  border-radius: 5px 5px 0 0;
+  -webkit-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+
+}
