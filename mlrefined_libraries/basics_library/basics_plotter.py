@@ -195,6 +195,54 @@ def triple_plot(**kwargs):
 
     plt.show()
     
+
+# custom plot for spiffing up plot of a two mathematical functions
+def triple_plot_in_two(**kwargs): 
+    # get labeling arguments
+    xlabel = '$x$'
+    ylabel = []
+    if 'ylabel' in kwargs:
+        ylabel = kwargs['ylabel']
+    func_in = kwargs['func_in']
+    f1 = kwargs['f1']
+    f2 = kwargs['f2']
+    f3 = kwargs['f3']
+    f4 = kwargs['f4']
+    legend1 = kwargs['legend1']
+    legend2 = kwargs['legend2']
+    axes = False
+    if 'axes' in kwargs:
+        axes = kwargs['axes']
+    
+    # plot the functions 
+    fig = plt.figure(figsize = (15,4))
+    plt.style.use('ggplot')
+    ax1 = fig.add_subplot(121); ax2 = fig.add_subplot(122);
+    
+    # plot
+    ax1.plot(func_in, f1, c='r', linewidth=2, zorder = 3)
+    ax1.plot(func_in, f2, c='b', linewidth=2, zorder = 3)
+    ax2.plot(func_in, f3, c='r', linewidth=2, zorder = 3)
+    ax2.plot(func_in, f4, c='g', linewidth=2, zorder = 3)
+
+    # plot x and y axes, and clean up
+    ax1.set_xlabel(xlabel,fontsize = 14)
+    ax2.set_xlabel(xlabel,fontsize = 14)
+   
+    
+    # clean up plots
+    ax1.grid(True, which='both'), ax2.grid(True, which='both')
+    
+    if axes == True:
+        ax1.axhline(y=0, color='k', linewidth=1), ax2.axhline(y=0, color='k', linewidth=1)
+        ax1.axvline(x=0, color='k', linewidth=1), ax2.axvline(x=0, color='k', linewidth=1)
+        
+    # add legend
+    ax1.legend(legend1,loc='center left', bbox_to_anchor=(0.13, 1.15),fontsize=18,ncol=2)
+    ax2.legend(legend2,loc='center left', bbox_to_anchor=(0.13, 1.15),fontsize=18,ncol=2)
+    
+    plt.show()      
+    
 # plot pandas to html table centered in notebook
 def table_plot(table):
     # display table mcdonalds revenue values

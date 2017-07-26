@@ -21,7 +21,8 @@ class visualizer:
     def draw_it(self,**args):
         # user input functions to add
         self.g1 = args['g1']                            # input function
-        self.g2 = args['g2']                            # input function
+        self.g2 = args['g2']
+        # input function
         num_frames = 100
         if 'num_frames' in args:
             num_frames = args['num_frames']
@@ -31,7 +32,20 @@ class visualizer:
         max_range = -3
         if 'max_range' in args:
             max_range = args['max_range']
+        if 'title1' in args:
+            title1 = args['title1']
+        else:
+            title1 = '$g_1$'
+        if 'title2' in args:
+            title2 = args['title2']
+        else:
+            title2 = '$g_2$'
+        if 'title3' in args:
+            title3 = args['title3']
+        else:
+            title3 = '$\\alpha\,g_1 + (1 - \\alpha)\,g_2$'    
             
+      
         # initialize figure
         fig = plt.figure(figsize = (15,5))
         artist = fig
@@ -78,17 +92,17 @@ class visualizer:
                                                 
             # plot function 1
             ax1.plot(w_plot,g1_plot,color = 'k',zorder = 1)                           
-            ax1.set_title("$g_1$",fontsize = 15)
+            ax1.set_title(title1,fontsize = 15)
 
             # plot function 2
             ax2.plot(w_plot,g2_plot,color = 'k',zorder = 1)                
-            ax2.set_title("$g_2$",fontsize = 15)
+            ax2.set_title(title2,fontsize = 15)
 
             # plot combination of both
             alpha = alpha_vals[k]
             g_combo = alpha*g1_plot + (1 - alpha)*g2_plot
             ax3.plot(w_plot,g_combo,color = 'k',zorder = 1) 
-            ax3.set_title('$\\alpha\,g_1 + (1 - \\alpha)\,g_2$',fontsize = 15)
+            ax3.set_title(title3,fontsize = 15)
             
             # set vertical limits
             ax1.set_ylim([g1_min,g1_max])
