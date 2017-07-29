@@ -302,6 +302,37 @@ def step_plot(table1,table2,**kwargs):
     ax1.axvline(x=0, color='k', linewidth=1), ax2.axvline(x=0, color='k', linewidth=1)
     plt.show()
     
+# 3d poly plotter
+def general_3d_plotter(func):
+    # generate input values
+    s = np.linspace(-2,2,100)
+    x_1,x_2 = np.meshgrid(s,s)
+    x_1.shape = (100**2,1)
+    x_2.shape = (100**2,1)
+    x = np.concatenate((x_1,x_2),axis=1)
+    f = func(x)
+    print (np.shape(x))
+    print (np.shape(f))
+    # reshape for plotting
+    x_1.shape = (100,100)
+    x_2.shape = (100,100)
+    f.shape = (100,100)
+
+    # build 4 polynomial basis elements
+    fig = plt.figure(num=None, figsize = (16,5), dpi=80, facecolor='w', edgecolor='k')
+    ax1 = plt.subplot(1,1,1,projection = '3d')
+    ax1.plot_surface(x_1,x_2,f,alpha = 0.1,color = 'b',zorder = 0,shade = True,linewidth=0.5,antialiased = True,cstride = 20, rstride = 15)
+        
+    # clean up plot
+    ax1.view_init(10,20)    
+    ax1.set_title('$f$',fontsize = 18)
+    ax1.set_xlabel('$x_1$',fontsize = 15)
+    ax1.set_ylabel('$x_2$',fontsize = 15)
+
+    fig.subplots_adjust(left=0,right=1,bottom=0,top=1)   # remove whitespace around 3d figure
+
+    plt.show()
+    
     
 # 3d poly plotter
 def poly_3d_plotter():
@@ -390,3 +421,84 @@ def recip_plotter():
         ax.set_xlabel('$x$',fontsize = 14)
 
     plt.show()
+    
+# composition demonstration number 1
+def composition_demo1():
+    # create functions
+    x = np.linspace(-3,3,500)
+    f1 = x**3
+    f2 = np.sin(x)
+    f2_f1 = np.sin(x**3)
+    f1_f2 = (np.sin(x))**3
+
+    # plot the functions 
+    fig = plt.figure(figsize = (15,4))
+    plt.style.use('ggplot')
+    ax1 = fig.add_subplot(131); ax2 = fig.add_subplot(132); ax3 = fig.add_subplot(133);
+
+    # plot
+    ax1.plot(x, f1, c='k', linewidth=2,zorder = 3)
+    ax2.plot(x, f2, c='k', linewidth=2,zorder = 3)
+    ax3.plot(x, f2_f1, c='r', linewidth=2,zorder = 3)
+    ax3.plot(x, f1_f2, c='b', linewidth=2,zorder = 3)
+
+    # plot x and y axes, and clean up
+    xlabel='$x$'
+    ax1.set_xlabel(xlabel,fontsize = 14)
+    ax2.set_xlabel(xlabel,fontsize = 14)
+    ax3.set_xlabel(xlabel,fontsize = 14)
+
+    ax1.set_title('$x^3$', rotation = 0, fontsize = 14)
+    ax2.set_title('$sin(x)$', rotation = 0, fontsize = 14)
+    ax3.legend(['$sin(x^3)$','$(sin(x))^3$'], loc='center left', bbox_to_anchor=(0, 1.15),fontsize=14,ncol=2)
+
+    # clean up plots
+    ax1.grid(True, which='both'), ax2.grid(True, which='both'),  ax3.grid(True, which='both')
+
+    ax1.axhline(y=0, color='k', linewidth=1), ax2.axhline(y=0, color='k', linewidth=1), ax3.axhline(y=0, color='k', linewidth=1)
+    ax1.axvline(x=0, color='k', linewidth=1), ax2.axvline(x=0, color='k', linewidth=1), ax3.axvline(x=0, color='k', linewidth=1)
+
+    plt.show()
+    
+# second demonstration of composition of 3 functions
+def composition_demo2():
+    # create functions
+    x = np.linspace(-2,1.1,500)
+    f1 = np.exp(np.sin(x**3))
+    f2 = np.exp((np.sin(x))**3)
+    f3 = np.sin(np.exp(x**3))
+    f4 = np.sin((np.exp(x))**3)
+    f5 = (np.exp(np.sin(x)))**3
+    f6 = (np.sin(np.exp(x)))**3
+
+    # plot the functions 
+    fig = plt.figure(figsize = (15,9))
+    plt.style.use('ggplot')
+    ax1 = fig.add_subplot(231); ax2 = fig.add_subplot(232); ax3 = fig.add_subplot(233);
+    ax4 = fig.add_subplot(234); ax5 = fig.add_subplot(235); ax6 = fig.add_subplot(236);
+
+    # plot
+    ax1.plot(x, f1, c='r', linewidth=2,zorder = 3)
+    ax2.plot(x, f2, c='r', linewidth=2,zorder = 3)
+    ax3.plot(x, f3, c='r', linewidth=2,zorder = 3)
+    ax4.plot(x, f4, c='r', linewidth=2,zorder = 3)
+    ax5.plot(x, f5, c='r', linewidth=2,zorder = 3)
+    ax6.plot(x, f6, c='r', linewidth=2,zorder = 3)
+
+    ax1.set_title('$e^{sin(x^3)}$', rotation = 0, fontsize = 14)
+    ax2.set_title('$e^{(sin(x))^3}$', rotation = 0, fontsize = 14)
+    ax3.set_title('$sin(e^{x^3})$', rotation = 0, fontsize = 14)
+    ax4.set_title('$sin((e^x)^3)$', rotation = 0, fontsize = 14)
+    ax5.set_title('$(e^{sin(x)})^3$', rotation = 0, fontsize = 14)
+    ax6.set_title('$(sin(e^x))^3$', rotation = 0, fontsize = 14)
+
+    # clean up plots
+    ax1.grid(True, which='both'), ax2.grid(True, which='both'),  ax3.grid(True, which='both')
+    ax4.grid(True, which='both'), ax5.grid(True, which='both'),  ax6.grid(True, which='both')
+
+    ax1.axhline(y=0, color='k', linewidth=1), ax2.axhline(y=0, color='k', linewidth=1), ax3.axhline(y=0, color='k', linewidth=1)
+    ax1.axvline(x=0, color='k', linewidth=1), ax2.axvline(x=0, color='k', linewidth=1), ax3.axvline(x=0, color='k', linewidth=1)
+    ax4.axhline(y=0, color='k', linewidth=1), ax5.axhline(y=0, color='k', linewidth=1), ax6.axhline(y=0, color='k', linewidth=1)
+    ax4.axvline(x=0, color='k', linewidth=1), ax5.axvline(x=0, color='k', linewidth=1), ax6.axvline(x=0, color='k', linewidth=1)
+
+    plt.show()   

@@ -74,7 +74,7 @@ class visualizer:
         ggap = g_range*0.5
 
         # plot original function
-        ax.plot_surface(w1_vals,w2_vals,g_vals,alpha = 0.1,color = 'k',rstride=15, cstride=15,linewidth=0.25,edgecolor = 'k')    
+        ax.plot_surface(w1_vals,w2_vals,g_vals,alpha = 0.1,color = 'k',rstride=15, cstride=15,linewidth=0.07,edgecolor = 'k',antialiased=True)    
         
         # clean up plotting area
         ax.axis(set_axis)
