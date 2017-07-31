@@ -43,7 +43,7 @@ class visualizer:
         ax = plt.subplot(gs[0]); ax.axis('off');
 
         # generate function for plotting on each slide
-        w_plot = np.linspace(-3,3,300)          # input range for the original function
+        w_plot = np.linspace(-3,3,2000)          # input range for the original function
         g_plot = self.g(w_plot)                 # original function evaluated over input region
         true_grad = [self.grad(w) for w in w_plot]        # true derivative 
         
@@ -90,8 +90,8 @@ class visualizer:
             ax.set_xlim([-3,3])
             
             # label axes
-            ax.set_xlabel('$w$',fontsize = 20)
-            ax.set_ylabel('$g(w)$',fontsize = 20,rotation = 0,labelpad = 25)
+            ax.set_xlabel('$w$',fontsize = 18)
+            ax.set_ylabel('$g(w)$',fontsize = 18,rotation = 0,labelpad = 25)
                 
             return artist,
 
