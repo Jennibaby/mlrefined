@@ -9,14 +9,35 @@ def ad_derval_plot(MyTuple,g,**kwargs):
     w = np.linspace(-10,10,1000) 
     if 'w' in kwargs:
         w = kwargs['w']
-
-    # define function/derivative Evals objects for each initial value in w_range
-    valder_objs = [MyTuple(val = u) for u in w]
+  
+    # recurse to create higher order derivative object
+    order = 1
+    if 'order' in kwargs:
+        order = kwargs['order']
+    
+    # initialize objects
+    valder_objs = []
+    for u in w:
+        # loop over and make deep object for higher order derivatives
+        s = MyTuple(val = u)
+        for i in range(order-1):
+            s = MyTuple(val = s)
+        valder_objs.append(s)
 
     # collect function and derivative values to plot
     results = [g(w) for w in valder_objs]
-    g = [r.val for r in results]
-    dgdw = [r.der for r in results]
+    
+    # loop over and collect final derivative value
+    g = []
+    dgdw = []
+    for r in results:
+        val = r.val
+        der = r.der
+        for i in range(order-1):
+            val = val.val
+            der = der.der
+        g.append(val)
+        dgdw.append(der)
 
     # generate original function
     function_table = np.stack((w,g), axis=1) 
@@ -25,7 +46,7 @@ def ad_derval_plot(MyTuple,g,**kwargs):
     derivative_table = np.stack((w,dgdw), axis=1) 
 
     # use custom plotter to show both functions
-    baslib.basics_plotter.double_plot(table1 = function_table, table2 = derivative_table,plot_type = 'continuous',xlabel = '$w$',ylabel_1 = '$g(w)$',ylabel_2 = r'$\frac{\mathrm{d}}{\mathrm{d}w}g(w)$',fontsize = 14)
+    baslib.basics_plotter.double_plot(table1 = function_table, table2 = derivative_table,plot_type = 'continuous',xlabel = '$w$',ylabel_1 = '$g(w)$',ylabel_2 = r'$\frac{\mathrm{d}^' + str(order) +  '}{\mathrm{d}w^' + str(order) +  '}g(w)$',fontsize = 14)
 
 # plotter for function and derivative equations
 def derval_eq_plot(g,dgdw,**kwargs):
