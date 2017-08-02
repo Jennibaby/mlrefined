@@ -4,9 +4,11 @@ from mlrefined_libraries import basics_library as baslib
 import numpy as np
 
 # a short function for plotting function and derivative values over a large range for input function g
-def ad_derval_plot(MyTuple,g):
+def ad_derval_plot(MyTuple,g,**kwargs):
     # specify range of input for our function and its derivative
-    w = np.linspace(-10,10,1000)    
+    w = np.linspace(-10,10,1000) 
+    if 'w' in kwargs:
+        w = kwargs['w']
 
     # define function/derivative Evals objects for each initial value in w_range
     valder_objs = [MyTuple(val = u) for u in w]
@@ -26,10 +28,12 @@ def ad_derval_plot(MyTuple,g):
     baslib.basics_plotter.double_plot(table1 = function_table, table2 = derivative_table,plot_type = 'continuous',xlabel = '$w$',ylabel_1 = '$g(w)$',ylabel_2 = r'$\frac{\mathrm{d}}{\mathrm{d}w}g(w)$',fontsize = 14)
 
 # plotter for function and derivative equations
-def derval_eq_plot(g,dgdw):
+def derval_eq_plot(g,dgdw,**kwargs):
     # specify range of input for our function and its derivative
-    w = np.linspace(-10,10,1000)   
-
+    w = np.linspace(-10,10,1000) 
+    if 'w' in kwargs:
+        w = kwargs['w']
+        
     # make real function / derivative values
     g_vals = g(w)
     dgdw_vals = dgdw(w)
