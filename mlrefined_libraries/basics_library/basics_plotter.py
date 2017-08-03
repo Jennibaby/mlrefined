@@ -502,3 +502,53 @@ def composition_demo2():
     ax4.axvline(x=0, color='k', linewidth=1), ax5.axvline(x=0, color='k', linewidth=1), ax6.axvline(x=0, color='k', linewidth=1)
 
     plt.show()   
+    
+# plotter for our recursive function
+def recursive_plotter(f,n,**kwargs):
+    plot_type = 'continuous'
+    if 'plot_type' in kwargs:
+        plot_type = kwargs['plot_type']
+        
+    x = np.linspace(-3,3,500)
+    if 'x' in kwargs:
+        x = kwargs['x']
+        
+    legend = 'on'
+    if 'legend' in kwargs:
+        legend = kwargs['legend']
+        
+    plot_all = True
+    if 'plot_all' in kwargs:
+        plot_all = kwargs['plot_all']
+        
+    ### loop over compositions desired and plot each level, or just plot final composition ###
+    if plot_all == True:
+        for i in range(1,n+1):
+            # evaluate desired composition
+            f_evals = f(x,i)
+
+            # plot = choose plot type    
+            label = '$f^{(' + str(i) + ')}(x)$'
+            if plot_type == 'continuous':
+                plt.plot(x, f_evals, linewidth=2,zorder = 3,label = label)
+            if plot_type == 'scatter':
+                plt.scatter(x, f_evals, c='r', s=50,edgecolor='k',linewidth=1,label = label)
+         
+    else:  # plot deepest composition
+        f_evals = f(x,n)
+        label = '$f^{(' + str(n) + ')}(x)$'
+        if plot_type == 'continuous':
+            plt.plot(x, f_evals, linewidth=2,zorder = 3,label = label)
+        if plot_type == 'scatter':
+            plt.scatter(x, f_evals, c='r', s=50,edgecolor='k',linewidth=1,label = label)
+        
+    # plot x and y axes, and clean up
+    plt.grid(True, which='both')
+    plt.axhline(y=0, color='k', linewidth=1)
+    plt.axvline(x=0, color='k', linewidth=1)
+       
+    # print legend too?
+    if legend == 'on':
+        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), shadow=True,prop={'family':'cursive','weight':'roman','size':'medium'})
+
+    plt.show()
