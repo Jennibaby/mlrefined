@@ -9,6 +9,8 @@ import matplotlib.animation as animation
 from autograd import grad as compute_grad   # The only autograd function you may ever need
 import autograd.numpy as np
 import math
+import time
+from IPython.display import clear_output
 
 class visualizer: 
     '''
@@ -47,9 +49,18 @@ class visualizer:
         g_range = max(g_plot) - min(g_plot)
         ggap = g_range*0.5
         w_vals = np.linspace(-2.5,2.5,num_frames)
-     
+        print ('beginning animation rendering...')
+        
         # animation sub-function
         def animate_it(k):
+            # print rendering update
+            if np.mod(k+1,25) == 0:
+                print ('rendering animation frame ' + str(k+1) + ' of ' + str(num_frames))
+            if k == num_frames - 1:
+                print ('animation rendering complete!')
+                time.sleep(1.5)
+                clear_output()
+                
             # clear out each panel for next slide
             ax1.cla()
             ax2.cla()

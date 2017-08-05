@@ -12,7 +12,7 @@ from matplotlib import gridspec
 from autograd import grad as compute_grad   # The only autograd function you may ever need
 import autograd.numpy as np
 import math
-
+import time
 
 class visualizer:
     '''
@@ -52,6 +52,7 @@ class visualizer:
             
         grad_range = max(grad_plot) - min(grad_plot)
         grad_gap = grad_range*0.5
+        print ('beginning animation rendering...')
                
         # animation sub-function
         def animate(k):
