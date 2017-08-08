@@ -44,6 +44,13 @@ def transform2d_animator(mat1,**kwargs):
     num_frames = 100
     if 'num_frames' in kwargs:
         num_frames = kwargs['num_frames']
+        
+    # grab points if input
+    pts = []
+    orig_pts = []
+    if 'pts' in kwargs:
+        pts = kwargs['pts']
+        orig_pts = copy.deepcopy(pts)
      
     # define convex-combo parameter - via num_frames
     alphas = np.linspace(0,1,num_frames)
@@ -51,7 +58,8 @@ def transform2d_animator(mat1,**kwargs):
     # define grid of points via meshgrid
     viewx = 5
     viewgap = 0.1*viewx
-    grid = make_warpable_grid(horz_min=-viewx,horz_max=viewx,vert_min=-viewx,vert_max=viewx)
+    viewx2 = 10
+    grid = make_warpable_grid(horz_min=-viewx2,horz_max=viewx2,vert_min=-viewx2,vert_max=viewx2)
     orig_grid = copy.deepcopy(grid)
     
     # initialize figure
@@ -86,9 +94,14 @@ def transform2d_animator(mat1,**kwargs):
         # compute current transformation of points and plot
         grid = np.dot(mat1,orig_grid.T).T
             
-        # plot points
+        # plot warped grid
         for i in range(80):
-            ax.plot(grid[200*i:(i+1)*200,0],grid[200*i:(i+1)*200,1],color = [0.75,0.75,0.75],linewidth = 1,zorder = 0)   
+            ax.plot(grid[200*i:(i+1)*200,0],grid[200*i:(i+1)*200,1],color = [0.75,0.75,0.75],linewidth = 1,zorder = 0)  
+            
+        # plot input points
+        if len(orig_pts) > 0:
+            pts = np.dot(mat1,orig_pts.T).T
+            ax.plot(pts[:,0],pts[:,1],c = 'k',linewidth = 3)
                           
         # plot x and y axes, and clean up
         plt.grid(True, which='both')
@@ -105,3 +118,98 @@ def transform2d_animator(mat1,**kwargs):
         
     return(anim)     
         
+    # animate the method
+def inner_product_visualizer(**kwargs):
+    # set number of frames for animation
+    num_frames = 300                          # number of slides to create - the input range [-3,3] is divided evenly by this number
+    if 'num_frames' in kwargs:
+        num_frames = kwargs['num_frames']
+    
+    # initialize figure
+    fig = plt.figure(figsize = (16,8))
+    artist = fig
+
+    # create subplot with 3 panels, plot input function in center plot
+    gs = gridspec.GridSpec(1, 2, width_ratios=[1,1],wspace=0.3, hspace=0.05) 
+    ax1 = plt.subplot(gs[0]);
+    ax2 = plt.subplot(gs[1]); 
+    
+    # create dataset for unit circle
+    v = np.linspace(0,2*np.pi,100)
+    s = np.sin(v)
+    s.shape = (len(s),1)
+    t = np.cos(v)
+    t.shape = (len(t),1)
+    
+    # user defined starting point on the circle
+    start = 0
+    if 'start' in kwargs:
+        start = kwargs['start']
+        
+    # create span of angles to plot over
+    v = np.linspace(start,2*np.pi + start,num_frames)
+    y = 0.87*np.sin(v)
+    x = 0.87*np.cos(v)
+    
+    # create linspace for sine/cosine plots
+    w = np.linspace(start,2*np.pi + start,300)
+    
+    # define colors for sine / cosine
+    colors = ['salmon','cornflowerblue']
+    
+    # print update
+    print ('starting animation rendering...')
+    
+    # animation sub-function
+    def animate(k):
+        # clear panels for next slide
+        ax1.cla()
+        ax2.cla()
+        
+        # print rendering update
+        if np.mod(k+1,25) == 0:
+            print ('rendering animation frame ' + str(k+1) + ' of ' + str(num_frames))
+        if k == num_frames - 1:
+            print ('animation rendering complete!')
+            time.sleep(1.5)
+            clear_output()
+        
+        ### setup left panel ###
+        # plot circle with lines in left panel
+        ax1.plot(s,t,color = 'k',linewidth = 3)
+        
+        # plot moving arrow
+        ax1.arrow(0, 0, x[k], y[k], head_width=0.1, head_length=0.1, fc='k', color = colors[1],linewidth=3,zorder = 3)
+        
+        # plot fixed arrow
+        ax1.arrow(0, 0, 0.87, 0, head_width=0.1, head_length=0.1, fc='k', color = 'k',linewidth=3,zorder = 3)
+
+        # clean up panel
+        ax1.grid(True, which='both')
+        ax1.axhline(y=0, color='k')
+        ax1.axvline(x=0, color='k')
+        
+        ### setup right panel ###
+        # determine closest value in space of sine/cosine input
+        current_angle = v[k]
+        ind = np.argmin(np.abs(w - current_angle))
+        p = w[:ind+1]
+        
+        # plot sine wave so far
+        ax2.plot(p,np.cos(p),color = colors[1],linewidth=4,zorder = 3)
+        
+        # cleanup plot
+        ax2.grid(True, which='both')
+        ax2.axhline(y=0, color='k')
+        ax2.axvline(x=0, color='k')   
+        ax2.set_xlim([-0.3 + start,2*np.pi + 0.3 + start])
+        ax2.set_ylim([-1.2,1.2])
+        
+        # add legend
+        ax2.legend([r'cos$(\theta)$'],loc='center left', bbox_to_anchor=(0.33, 1.05),fontsize=18,ncol=2)
+
+        return artist,
+
+    anim = animation.FuncAnimation(fig, animate ,frames=num_frames, interval=num_frames, blit=True)
+
+    return(anim)
