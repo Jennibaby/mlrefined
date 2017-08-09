@@ -209,7 +209,10 @@ def nonlinear_transform2d_animator(func,**kwargs):
     
     # plot input function
     ax = plt.subplot(gs[1])
-
+    
+    # print update
+    print ('starting animation rendering...')
+    
     # animate
     def animate(k):
         # clear the panel
@@ -366,3 +369,111 @@ def inner_product_visualizer(**kwargs):
     anim = animation.FuncAnimation(fig, animate ,frames=num_frames, interval=num_frames, blit=True)
 
     return(anim)
+
+class quadratic_3d_flexer:
+    '''
+    Draw 3d quadratic ranging from convex
+    '''
+
+    # compute first order approximation
+    def draw_it(**kwargs):  
+        ### other options
+        # size of figure
+        set_figsize = 4
+        if 'set_figsize' in kwargs:
+            set_figsize = kwargs['set_figsize']
+            
+        # turn axis on or off
+        set_axis = 'off'
+        if 'set_axis' in kwargs:
+            set_axis = kwargs['set_axis']
+            
+        # plot title
+        set_title = ''
+        if 'set_title' in kwargs:
+            set_title = kwargs['set_title']
+            
+        # horizontal and vertical axis labels
+        horiz_1_label = ''
+        if 'horiz_1_label' in kwargs:
+            horiz_1_label = kwargs['horiz_1_label']
+            
+        horiz_2_label = ''
+        if 'horiz_2_label' in kwargs:
+            horiz_2_label = kwargs['horiz_2_label']
+            
+        vert_label = ''
+        if 'vert_label' in kwargs:
+            vert_label = kwargs['vert_label']
+            
+        # set width of plot
+        input_range = np.linspace(-2,2,1000)                  # input range for original function
+        if 'input_range' in kwargs:
+            input_range = kwargs['input_range']
+            
+        # set viewing angle on plot
+        view = [-20,60]
+        if 'view' in kwargs:
+            view = kwargs['view']
+        
+        num_slides = 100
+        if 'num_slides' in kwargs:
+            num_frames = kwargs['num_slides']
+            
+        alpha_values = np.linspace(-1,1,num_frames)
+        
+        # initialize figure
+        fig = plt.figure(figsize = (set_figsize,set_figsize))
+        fig.subplots_adjust(left=0,right=1,bottom=0,top=1)   # remove whitespace around 3d figure
+        artist = fig
+        ax = fig.add_subplot(111, projection='3d')
+        
+        # print update
+        print ('starting animation rendering...')
+        
+        # animation sub-function
+        def animate(k):
+            ax.cla()
+            # print rendering update
+            if np.mod(k+1,25) == 0:
+                print ('rendering animation frame ' + str(k+1) + ' of ' + str(num_frames))
+            if k == num_frames - 1:
+                print ('animation rendering complete!')
+                time.sleep(1.5)
+                clear_output()
+            
+            # quadratic to plot
+            alpha = alpha_values[k]
+            g = lambda w: w[0]**2 + alpha*w[1]**2
+            
+            # create grid from plotting range
+            w1_vals,w2_vals = np.meshgrid(input_range,input_range)
+            w1_vals.shape = (len(input_range)**2,1)
+            w2_vals.shape = (len(input_range)**2,1)
+            g_vals = g([w1_vals,w2_vals])
+        
+            # vals for cost surface
+            w1_vals.shape = (len(input_range),len(input_range))
+            w2_vals.shape = (len(input_range),len(input_range))
+            g_vals.shape = (len(input_range),len(input_range))
+
+            g_range = np.amax(g_vals) - np.amin(g_vals)             # used for cleaning up final plot
+            ggap = g_range*0.5
+
+            # plot original function
+            ax.plot_surface(w1_vals,w2_vals,g_vals,alpha = 0.3,color = 'r',rstride=100, cstride=100,linewidth=1,edgecolor = 'k') 
+
+            # clean up plotting area
+            ax.set_title(set_title,fontsize = 15)
+            ax.set_xlabel(horiz_1_label,fontsize = 15)
+            ax.set_ylabel(horiz_2_label,fontsize = 15)
+            ax.set_zlabel(vert_label,fontsize = 15)
+            ax.view_init(view[0],view[1])
+            ax.axis(set_axis)
+            #ax.set_zlim([-2.5,2.5])
+ 
+            return artist,
+
+        anim = animation.FuncAnimation(fig, animate ,frames=len(alpha_values), interval=len(alpha_values), blit=True)
+        
+        return(anim)
