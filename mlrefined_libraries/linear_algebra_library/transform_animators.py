@@ -45,18 +45,35 @@ def transform2d_animator(mat1,**kwargs):
     if 'num_frames' in kwargs:
         num_frames = kwargs['num_frames']
         
+    # create points to help visualize transformation - default is a circle
+    s = np.linspace(0,2*np.pi,1000)
+    x = 2*np.cos(s)
+    x.shape = (len(s),1)
+    y = 2*np.sin(s)
+    y.shape = (len(s),1)
+    pts = np.concatenate((x,y),axis=1)
+    orig_pts = copy.deepcopy(pts)
+    
     # grab points if input
-    pts = []
-    orig_pts = []
     if 'pts' in kwargs:
         pts = kwargs['pts']
         orig_pts = copy.deepcopy(pts)
-     
+
+    # type of plot - continuous or scatter
+    plot_type = 'continuous'
+    if 'plot_type' in kwargs:
+        plot_type = kwargs['plot_type']
+        
+    # draw on eigenvectors?
+    eigvecs_on = False
+    if 'eigvecs_on' in kwargs:
+        eigvecs_on = kwargs['eigvecs_on']
+        
     # define convex-combo parameter - via num_frames
     alphas = np.linspace(0,1,num_frames)
 
     # define grid of points via meshgrid
-    viewx = 5
+    viewx = 4
     viewgap = 0.1*viewx
     viewx2 = 10
     grid = make_warpable_grid(horz_min=-viewx2,horz_max=viewx2,vert_min=-viewx2,vert_max=viewx2)
@@ -101,8 +118,144 @@ def transform2d_animator(mat1,**kwargs):
         # plot input points
         if len(orig_pts) > 0:
             pts = np.dot(mat1,orig_pts.T).T
-            ax.plot(pts[:,0],pts[:,1],c = 'k',linewidth = 3)
-                          
+            
+            # switch for plot type
+            if plot_type == 'continuous':
+                ax.plot(pts[:,0],pts[:,1],c = 'k',linewidth = 3)
+            elif plot_type == 'scatter':
+                ax.scatter(pts[:,0],pts[:,1],c = 'k',edgecolor = 'w',s = 50,linewidth = 1)
+        
+        # plot eigenvectors?
+        if eigvecs_on == True and k > 0:
+            vals, vecs = np.linalg.eig(mat1)
+            
+            # plot first eigenvector
+            head_length = 0.4
+            vec1 = vals[0]*vecs[:,0]
+            ax.arrow(0, 0, vec1[0],vec1[1], head_width=0.25, head_length=head_length, fc='k', ec='k',linewidth=2,zorder = 3)
+
+            # plot first eigenvector
+            vec2 = vals[1]*vecs[:,1]
+            ax.arrow(0, 0, vec2[0],vec2[1], head_width=0.25, head_length=head_length, fc='k', ec='k',linewidth=2,zorder = 3)
+        
+        # plot x and y axes, and clean up
+        plt.grid(True, which='both')
+        plt.axhline(y=0, color='k', linewidth=1)
+        plt.axvline(x=0, color='k', linewidth=1)
+   
+        # return artist to render
+        ax.set_xlim([-viewx - viewgap,viewx + viewgap])
+        ax.set_ylim([-viewx - viewgap,viewx + viewgap])
+        
+        return artist,
+        
+    anim = animation.FuncAnimation(fig, animate,frames=num_frames, interval=num_frames, blit=True)
+        
+    return(anim)     
+
+# animator for showing grid of points transformed by linear transform
+def nonlinear_transform2d_animator(func,**kwargs):  
+    # define number of frames
+    num_frames = 100
+    if 'num_frames' in kwargs:
+        num_frames = kwargs['num_frames']
+        
+    # create points to help visualize transformation - default is a circle
+    s = np.linspace(0,2*np.pi,1000)
+    x = 2*np.cos(s)
+    x.shape = (len(s),1)
+    y = 2*np.sin(s)
+    y.shape = (len(s),1)
+    pts = np.concatenate((x,y),axis=1)
+    orig_pts = copy.deepcopy(pts)
+    
+    # grab points if input
+    if 'pts' in kwargs:
+        pts = kwargs['pts']
+        orig_pts = copy.deepcopy(pts)
+
+    # type of plot - continuous or scatter
+    plot_type = 'continuous'
+    if 'plot_type' in kwargs:
+        plot_type = kwargs['plot_type']
+        
+    # draw on eigenvectors?
+    eigvecs_on = False
+    if 'eigvecs_on' in kwargs:
+        eigvecs_on = kwargs['eigvecs_on']
+        
+    # define convex-combo parameter - via num_frames
+    alphas = np.linspace(0,1,num_frames)
+
+    # define grid of points via meshgrid
+    viewx = 4
+    viewgap = 0.1*viewx
+    viewx2 = 10
+    grid = make_warpable_grid(horz_min=-viewx2,horz_max=viewx2,vert_min=-viewx2,vert_max=viewx2)
+    orig_grid = copy.deepcopy(grid)
+    
+    # evaluate both the grid and input points through function
+    func_orig_grid = func(orig_grid.T).T
+    func_orig_pts = func(pts.T).T
+    
+    # initialize figure
+    fig = plt.figure(figsize = (16,8))
+    artist = fig
+    
+    # create subplot with 3 panels, plot input function in center plot
+    gs = gridspec.GridSpec(1, 3, width_ratios=[1,3, 1]) 
+    ax1 = plt.subplot(gs[0]); ax1.axis('off');
+    ax3 = plt.subplot(gs[2]); ax3.axis('off');
+    
+    # plot input function
+    ax = plt.subplot(gs[1])
+
+    # animate
+    def animate(k):
+        # clear the panel
+        ax.cla()
+        
+        # print rednering update
+        if np.mod(k+1,25) == 0:
+            print ('rendering animation frame ' + str(k+1) + ' of ' + str(num_frames))
+        if k == num_frames - 1:
+            print ('animation rendering complete!')
+            time.sleep(1.5)
+            clear_output()  
+        
+        # get current lambda, define current matrix
+        alpha = alphas[k]
+
+        # compute current transformation of points and plot
+        grid = (1-alpha)*orig_grid + alpha*func_orig_grid
+            
+        # plot warped grid
+        for i in range(80):
+            ax.plot(grid[200*i:(i+1)*200,0],grid[200*i:(i+1)*200,1],color = [0.75,0.75,0.75],linewidth = 1,zorder = 0)  
+            
+        # plot input points
+        if len(orig_pts) > 0:
+            pts = (1-alpha)*orig_pts + alpha*func_orig_pts
+            
+            # switch for plot type
+            if plot_type == 'continuous':
+                ax.plot(pts[:,0],pts[:,1],c = 'k',linewidth = 3)
+            elif plot_type == 'scatter':
+                ax.scatter(pts[:,0],pts[:,1],c = 'k',edgecolor = 'w',s = 50,linewidth = 1)
+        
+        # plot eigenvectors?
+        if eigvecs_on == True and k > 0:
+            vals, vecs = np.linalg.eig(mat1)
+            
+            # plot first eigenvector
+            head_length = 0.4
+            vec1 = vals[0]*vecs[:,0]
+            ax.arrow(0, 0, vec1[0],vec1[1], head_width=0.25, head_length=head_length, fc='k', ec='k',linewidth=2,zorder = 3)
+
+            # plot first eigenvector
+            vec2 = vals[1]*vecs[:,1]
+            ax.arrow(0, 0, vec2[0],vec2[1], head_width=0.25, head_length=head_length, fc='k', ec='k',linewidth=2,zorder = 3)
+        
         # plot x and y axes, and clean up
         plt.grid(True, which='both')
         plt.axhline(y=0, color='k', linewidth=1)
