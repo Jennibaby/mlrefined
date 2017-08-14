@@ -2,11 +2,15 @@
 from mlrefined_libraries.JSAnimation_slider_only import IPython_display_slider_only
 
 # import standard plotting and animation
+from IPython.display import clear_output
+import time
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from IPython.display import clear_output
-import time
 from matplotlib import gridspec
+
+# 3d function
+from mpl_toolkits.mplot3d import proj3d
 
 # import autograd functionality
 from autograd import grad as compute_grad   # The only autograd function you may ever need
