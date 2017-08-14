@@ -79,7 +79,6 @@ def draw_it(func,**kwargs):
     plot_func(func,view,ax3)    
     
     
-    
 # main function for plotting individual axes tangent approximations
 def animate_it(func,**kwargs):
     view =  [33,50]

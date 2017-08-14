@@ -36,7 +36,7 @@ def compare_2d3d(func1,func2,**kwargs):
     ax1 = plt.subplot(gs[0]); 
     grad = compute_grad(func1)
     
-        # generate a range of values over which to plot input function, and derivatives
+    # generate a range of values over which to plot input function, and derivatives
     w_plot = np.linspace(-3,3,200)                  # input range for original function
     g_plot = func1(w_plot)
     g_range = max(g_plot) - min(g_plot)             # used for cleaning up final plot
@@ -53,7 +53,7 @@ def compare_2d3d(func1,func2,**kwargs):
     # plot axis
     ax1.plot(w_plot,g_plot*0 + 0.5,color = 'k',zorder = 1,linewidth=1)                       
     # plot the input/output tangency point
-    ax1.scatter(w_val,g_val,s = 80,c = 'r',edgecolor = 'k',linewidth = 2,zorder = 3)            # plot point of tangency
+    ax1.scatter(w_val,g_val,s = 80,c = 'lime',edgecolor = 'k',linewidth = 2,zorder = 3)            # plot point of tangency
 
     #### plot first order approximation ####
     # plug input into the first derivative
@@ -70,14 +70,13 @@ def compare_2d3d(func1,func2,**kwargs):
     h = g_val + g_grad_val*(wrange - w_val)
 
     # plot the first order approximation
-    ax1.plot(wrange,h,color = 'r',alpha = 0.5,linewidth = 3,zorder = 2)      # plot approx
+    ax1.plot(wrange,h,color = 'lime',alpha = 0.5,linewidth = 3,zorder = 2)      # plot approx
     
     #### clean up panel ####
     # fix viewing limits on panel
     v = 5
     ax1.set_xlim([-v,v])
     ax1.set_ylim([-1 - 0.3,v - 0.3])
-    #ax1.set_ylim([min(min(g_plot) - ggap,-0.5),max(max(g_plot) + ggap,0.5)])
 
     # label axes
     ax1.set_xlabel('$w$',fontsize = 12,labelpad = -80)
@@ -138,10 +137,10 @@ def compare_2d3d(func1,func2,**kwargs):
     ax2.plot_surface(w1_vals, w2_vals, g_vals*0, alpha = 0.1,color = 'w',zorder = 1,rstride=25, cstride=25,linewidth=0.3,edgecolor = 'k') 
 
     ### plot tangent plane ###
-    ax2.plot_surface(w1tan_vals, w2tan_vals, h_vals, alpha = 0.4,color = 'r',zorder = 1,rstride=50, cstride=50,linewidth=1,edgecolor = 'k')     
+    ax2.plot_surface(w1tan_vals, w2tan_vals, h_vals, alpha = 0.4,color = 'lime',zorder = 1,rstride=50, cstride=50,linewidth=1,edgecolor = 'k')     
 
     # scatter tangency 
-    ax2.scatter(w_val[0],w_val[1],g_val,s = 70,c = 'r',edgecolor = 'k',linewidth = 2)
+    ax2.scatter(w_val[0],w_val[1],g_val,s = 70,c = 'lime',edgecolor = 'k',linewidth = 2)
     
     ### clean up plot ###
     # plot x and y axes, and clean up
