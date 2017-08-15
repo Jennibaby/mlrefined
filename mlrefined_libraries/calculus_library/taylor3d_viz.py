@@ -41,7 +41,7 @@ class visualizer:
         w_val = kwargs['w_val']
         
         # initialize figure
-        fig = plt.figure(figsize = (12,5))
+        fig = plt.figure(figsize = (12,6))
 
         # create subplot with 3 panels, plot input function in center plot
         gs = gridspec.GridSpec(1, 3, width_ratios=[1,2, 1]) 
@@ -69,7 +69,7 @@ class visualizer:
         w1_vals.shape = (len(r),len(r))
         w2_vals.shape = (len(r),len(r))
         g_vals.shape = (len(r),len(r))
-        ax2.plot_surface(w1_vals,w2_vals,g_vals,alpha = 0.1,color = 'k',rstride=15, cstride=15,linewidth=1,edgecolor = 'k')
+        ax2.plot_surface(w1_vals,w2_vals,g_vals,alpha = 0.1,color = 'w',rstride=15, cstride=15,linewidth=1,edgecolor = 'k')
         
         # get input/output pairs
         w_val = [float(a) for a in w_val]
@@ -81,7 +81,7 @@ class visualizer:
         grad_val.shape = (2,1)
         
        # plot tangency point
-        ax2.scatter(w1_val,w2_val,g_val,s = 50,c = 'r',edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
+        ax2.scatter(w1_val,w2_val,g_val,s = 50,c = 'lime',edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
 
         # plot first order approximation
         if first_order == True:
@@ -103,7 +103,7 @@ class visualizer:
             wrange1.shape = (len(t1),len(t1)) 
             wrange2.shape = (len(t1),len(t1)) 
             h_val.shape = (len(t1),len(t1))
-            ax2.plot_surface(wrange1,wrange2,h_val,alpha = 0.4,color = 'g',rstride=15, cstride=15,linewidth=1,edgecolor = 'k')
+            ax2.plot_surface(wrange1,wrange2,h_val,alpha = 0.2,color = 'lime',rstride=15, cstride=15,linewidth=1,edgecolor = 'k')
 
         # print second order approximation
         if second_order == True:
