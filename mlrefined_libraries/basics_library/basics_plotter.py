@@ -37,12 +37,13 @@ def single_plot(table,**kwargs):
     dim = np.shape(table)[1]
     
     # single two dimensonal plot
-    plt.style.use('ggplot')
     if dim == 2:
-        fig = plt.figure(figsize = (12,4))
+        fig = plt.figure(figsize = (7,3))
 
         # create subplot with 3 panels, plot input function in center plot
         gs = gridspec.GridSpec(1, 3, width_ratios=[1,3, 1]) 
+        fig.subplots_adjust(bottom = 0.25)
+
         ax1 = plt.subplot(gs[0]); ax1.axis('off');
         ax3 = plt.subplot(gs[2]); ax3.axis('off');
 
@@ -51,7 +52,7 @@ def single_plot(table,**kwargs):
         
         # choose plot type
         if plot_type == 'continuous':
-            ax2.plot(table[:,0], table[:,1], c='r', linewidth=2,zorder = 3)
+            ax2.plot(table[:,0], table[:,1], c='k', linewidth=2,zorder = 3)
         if plot_type == 'scatter':
             ax2.scatter(table[:,0], table[:,1], c='r', s=50,edgecolor='k',linewidth=1)
             
@@ -124,7 +125,6 @@ def double_plot(table1,table2,**kwargs):
         
     # plot the functions 
     fig = plt.figure(figsize = (15,4))
-    plt.style.use('ggplot')
     ax1 = fig.add_subplot(121); ax2 = fig.add_subplot(122); 
     plot_type = 'continuous'
     if 'plot_type' in kwargs:
