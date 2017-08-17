@@ -27,10 +27,10 @@ class visualizer:
         self.colors = [[0,1,0.25],[0,0.75,1]]    # set of custom colors used for plotting
 
     # compute first order approximation
-    def draw_it(self,**args):
+    def draw_it(self,**kwargs):
         num_frames = 300                          # number of slides to create - the input range [-3,3] is divided evenly by this number
-        if 'num_frames' in args:
-            num_frames = args['num_frames']
+        if 'num_frames' in kwargs:
+            num_frames = kwargs['num_frames']
             
         # initialize figure
         fig = plt.figure(figsize = (16,8))
@@ -43,21 +43,26 @@ class visualizer:
 
         # plot input function
         ax = plt.subplot(gs[1])
-
+        
+        max_val = 2.5
+        if 'max_val' in kwargs:
+            max_val = kwargs['max_val']
+        w_vals = np.linspace(-max_val,max_val,num_frames)       # range of values over which to plot first / second order approximations
+        
         # generate a range of values over which to plot input function, and derivatives
-        w_plot = np.linspace(-3,3,200)                  # input range for original function
+        w_plot = np.linspace(-max_val-0.5,max_val+0.5,200)                  # input range for original function
+        
         g_plot = self.g(w_plot)
         g_range = max(g_plot) - min(g_plot)             # used for cleaning up final plot
         ggap = g_range*0.5
-        w_vals = np.linspace(-2.5,2.5,num_frames)       # range of values over which to plot first / second order approximations
-        
+     
         # which approximations to plot with the function?  Two switches: first_order and second_order
         first_order = False
         second_order = False
-        if 'first_order' in args:
-            first_order = args['first_order']
-        if 'second_order' in args:
-            second_order = args['second_order']
+        if 'first_order' in kwargs:
+            first_order = kwargs['first_order']
+        if 'second_order' in kwargs:
+            second_order = kwargs['second_order']
         print ('starting animation rendering...')
             
         # animation sub-function
@@ -78,10 +83,10 @@ class visualizer:
             g_val = self.g(w_val)
 
             # plot original function
-            ax.plot(w_plot,g_plot,color = 'k',zorder = 0)                           # plot function
+            ax.plot(w_plot,g_plot,color = 'k',zorder = 0,linewidth=3)                           # plot function
             
             # plot the input/output tangency point
-            ax.scatter(w_val,g_val,s = 90,c = 'r',edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
+            ax.scatter(w_val,g_val,s = 120,c = 'lime',edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
             
             # label axes
             ax.set_xlabel('$w$',fontsize = 25)
@@ -92,24 +97,30 @@ class visualizer:
                 # plug input into the first derivative
                 g_grad_val = self.grad(w_val)
 
+                '''
                 # determine width to plot the approximation -- so its length == width
-                width = 1
+                width = 10
                 div = float(1 + g_grad_val**2)
                 w1 = w_val - math.sqrt(width/div)
                 w2 = w_val + math.sqrt(width/div)
+                '''
+                
+                # or just constant width
+                w1 = w_val - 3
+                w2 = w_val + 3
 
                 # compute first order approximation
                 wrange = np.linspace(w1,w2, 100)
                 h = g_val + g_grad_val*(wrange - w_val)
 
                 # plot the first order approximation
-                ax.plot(wrange,h,color = self.colors[0],linewidth = 2,zorder = 2)      # plot approx
+                ax.plot(wrange,h,color = self.colors[0],linewidth = 3,zorder = 2)      # plot approx
 
             #### should we plot second order approximation? ####
             if second_order == True:
                 # plug input value into the second derivative
                 g_grad_val = self.grad(w_val)
-                g_hess_val = self.hess(g_grad_val)
+                g_hess_val = self.hess(w_val)
 
                 # determine width of plotting area for second order approximator
                 width = 1
@@ -133,7 +144,7 @@ class visualizer:
                 ax.plot(wrange,h,color = self.colors[1],linewidth = 3,zorder = 1)      # plot approx
 
             # fix viewing limits on panel
-            ax.set_xlim([-3,3])
+            ax.set_xlim([-max_val,max_val])
             ax.set_ylim([min(g_plot) - ggap,max(g_plot) + ggap])
                 
             return artist,

@@ -51,7 +51,7 @@ def compare_2d3d(func1,func2,**kwargs):
     ax1.plot(w_plot,g_plot,color = 'k',zorder = 1,linewidth=2)                       
 
     # plot axis
-    ax1.plot(w_plot,g_plot*0 + 0.5,color = 'k',zorder = 1,linewidth=1)                       
+    ax1.plot(w_plot,g_plot*0,color = 'k',zorder = 1,linewidth=1)                       
     # plot the input/output tangency point
     ax1.scatter(w_val,g_val,s = 80,c = 'lime',edgecolor = 'k',linewidth = 2,zorder = 3)            # plot point of tangency
 
@@ -79,7 +79,7 @@ def compare_2d3d(func1,func2,**kwargs):
     ax1.set_ylim([-1 - 0.3,v - 0.3])
 
     # label axes
-    ax1.set_xlabel('$w$',fontsize = 12,labelpad = -80)
+    ax1.set_xlabel('$w$',fontsize = 12,labelpad = -60)
     ax1.set_ylabel('$g(w)$',fontsize = 25,rotation = 0,labelpad = 50)
     ax1.grid(False)
     ax1.yaxis.set_visible(False)
