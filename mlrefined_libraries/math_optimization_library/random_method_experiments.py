@@ -1,9 +1,12 @@
-import numpy as np
+import autograd.numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import gridspec
 from IPython.display import display, HTML
 import copy
+import time
+import math
+from IPython.display import clear_output
         
 # custom plot for spiffing up plot of a two mathematical functions
 def double_plot(func,num_samples,**kwargs):    
@@ -60,7 +63,7 @@ def double_plot(func,num_samples,**kwargs):
     ax3.grid(False, which='both')
     
     
-    ###### create 2d panels ######   
+    ###### create 3d panels ######   
     w = np.linspace(-wmax,wmax,200)
     w1_vals, w2_vals = np.meshgrid(w,w)
     w1_vals.shape = (len(w)**2,1)
@@ -156,4 +159,132 @@ def double_plot(func,num_samples,**kwargs):
     ax4.set_zticks([0,1,2])
     ax4.set_zticklabels([0,1,2])
 
+def random_eval_experiment():
+    '''
+    Experiment illutrating how quickly global random evaluation will fail as a method of optimization.  Output is minimum value attained by random sampling over the cube [-1,1] x [-1,1] x... [-1,1] evaluating simple quadratic for 100, 1000, or 10000 times.  The dimension is increased from 1 to 100 and the minimum plotted for each dimension.
+    '''    
+    # define symmetric quadratic N-dimensional
+    g = lambda w: np.dot(w.T,w)
 
+    # loop over dimensions, sample points, evaluate
+    mean_evals = []
+    big_dim = 100
+    num_pts = 10000
+    pt_stops = [100,1000,10000]
+    for dim in range(big_dim):
+        dim_eval = []
+        m_eval = []
+        for pt in range(num_pts):
+            # generate random point using uniform
+            r = 2*np.random.rand(dim+1) - 1
+            e = g(r)
+            dim_eval.append(e)
+
+            # record mean and std of so many pts
+            if (pt+1) in pt_stops:
+                m_eval.append(np.min(dim_eval))
+        mean_evals.append(m_eval)
+
+    # convert to array for easy access
+    mean_evals_global = np.asarray(mean_evals)
+
+    fig = plt.figure(figsize = (6,3))
+
+    # create subplot with 3 panels, plot input function in center plot
+    gs = gridspec.GridSpec(1, 1, width_ratios=[1]) 
+    fig.subplots_adjust(wspace=0.5,hspace=0.01)
+
+    # plot input function
+    ax = plt.subplot(gs[0])
+
+    for k in range(len(pt_stops)):
+        mean_evals = mean_evals_global[:,k]
+
+        # scatter plot mean value
+        ax.plot(np.arange(big_dim)+1,mean_evals)
+
+        # clean up plot - label axes, etc.,
+        ax.set_xlabel('dimension of input')
+        ax.set_ylabel('funciton value')
+
+    # draw legend
+    t = [str(p) for p in pt_stops]
+    ax.legend(t, bbox_to_anchor=(1, 0.5))
+
+    # draw horizontal axis
+    ax.plot(np.arange(big_dim) + 1,np.arange(big_dim)*0,linewidth=1,linestyle='--',color = 'k')
+    plt.show()
+
+def random_local_experiment():
+    '''
+    Experiment illustrating the ultimate shortcoming of local random search.   Output is fraction of directions that are decreasing on a simple quadratic centered at the point [1,0,0...] as we increase the dimension of the function
+    
+    '''
+    # define symmetric quadratic N-dimensional
+    g = lambda w: np.dot(w.T,w)
+    
+    # loop over dimensions, sample points, evaluate
+    mean_evals = []
+    big_dim = 25
+    num_pts = 10000
+    pt_stops = [100,1000,10000]
+    for dim in range(big_dim):
+        # containers for evaluation
+        dim_eval = []
+        m_eval = []
+
+        # starting vector
+        start = np.zeros((dim+1,1))
+        start[0] = 1
+
+        for pt in range(num_pts):
+            # generate random point on n-sphere
+            r = np.random.randn(dim+1)
+            r.shape = (len(r),1)
+            pt_norm = math.sqrt(np.dot(r.T,r))
+            r = [b/pt_norm for b in r]
+            r+=start
+
+            # compare new direction to original point
+            if g(r) < g(start):
+                dim_eval.append(1)
+            else:
+                dim_eval.append(0)
+
+            # record mean and std of so many pts
+            if (pt+1) in pt_stops:
+                m_eval.append(np.mean(dim_eval))
+
+        # store average number of descent directions
+        mean_evals.append(m_eval)
+
+    # convert to array for easy access
+    mean_evals_global = np.asarray(mean_evals)
+
+    fig = plt.figure(figsize = (6,3))
+
+    # create subplot with 3 panels, plot input function in center plot
+    gs = gridspec.GridSpec(1, 1, width_ratios=[1]) 
+    fig.subplots_adjust(wspace=0.5,hspace=0.01)
+
+    # plot input function
+    ax = plt.subplot(gs[0])
+
+    for k in range(len(pt_stops)):
+        mean_evals = mean_evals_global[:,k]
+
+        # scatter plot mean value
+        ax.plot(np.arange(big_dim)+1,mean_evals)
+
+        # clean up plot - label axes, etc.,
+        ax.set_xlabel('dimension of input')
+        ax.set_ylabel('fraction of directions descennding')
+
+    # draw legend
+    t = [str(p) for p in pt_stops]
+    ax.legend(t, bbox_to_anchor=(1, 0.5))
+
+    # draw horizontal axis
+    ax.plot(np.arange(big_dim) + 1,np.arange(big_dim)*0,linewidth=1,linestyle='--',color = 'k')
+
+    plt.show()
