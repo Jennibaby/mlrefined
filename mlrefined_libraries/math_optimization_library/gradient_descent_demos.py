@@ -36,14 +36,209 @@ class visualizer:
             # plug in value into func and derivative
             grad_eval = float(self.grad(w))
             
+            # normalized or unnormalized?
+            if self.version == 'normalized':
+                grad_norm = abs(grad_eval)
+                if grad_norm == 0:
+                    grad_norm += 10**-6*np.sign(2*np.random.rand(1) - 1)
+                grad_eval /= grad_norm
+            
             # take gradient descent step
             w = w - self.alpha*grad_eval
             
             # record
             self.w_hist.append(w)
 
-    # animate the gradient descent method
-    def draw_it_gradient_descent(self,**kwargs):
+            
+    ##### draw still image of gradient descent on single-input function ####       
+    def draw_2d(self,**kwargs):
+        self.g = kwargs['g']                            # input function
+        self.grad = compute_grad(self.g)              # gradient of input function
+        self.w_init =float( -2)                       # user-defined initial point (adjustable when calling each algorithm)
+        self.alpha = 10**-4                           # user-defined step length for gradient descent (adjustable when calling gradient descent)
+        self.max_its = 20                             # max iterations to run for each algorithm
+        self.w_hist = []                              # container for algorithm path
+        
+        # get new initial point if desired
+        if 'w_init' in kwargs:
+            self.w_init = float(kwargs['w_init'])
+            
+        # take in user defined step length
+        if 'alpha' in kwargs:
+            self.alpha = float(kwargs['alpha'])
+            
+        # take in user defined maximum number of iterations
+        if 'max_its' in kwargs:
+            self.max_its = float(kwargs['max_its'])
+            
+        # version of gradient descent to use (normalized or unnormalized)
+        self.version = 'unnormalized'
+        if 'version' in kwargs:
+            self.version = kwargs['version']
+            
+        # initialize figure
+        fig = plt.figure(figsize = (9,4))
+        artist = fig
+        
+        # remove whitespace from figure
+        #fig.subplots_adjust(left=0, right=1, bottom=0, top=1) # remove whitespace
+        #fig.subplots_adjust(wspace=0.01,hspace=0.01)
+
+        # create subplot with 3 panels, plot input function in center plot
+        gs = gridspec.GridSpec(1, 3, width_ratios=[1,4,1]) 
+
+        ax1 = plt.subplot(gs[0]); ax1.axis('off')
+        ax3 = plt.subplot(gs[2]); ax3.axis('off')
+        ax = plt.subplot(gs[1]); 
+
+        # generate function for plotting on each slide
+        w_plot = np.linspace(-3.1,3.1,200)
+        g_plot = self.g(w_plot)
+        g_range = max(g_plot) - min(g_plot)
+        ggap = g_range*0.1
+        width = 30
+        
+        # run gradient descent method
+        self.w_hist = []
+        self.run_gradient_descent()
+        
+        # colors for points --> green as the algorithm begins, yellow as it converges, red at final point
+        s = np.linspace(0,1,len(self.w_hist[:round(len(self.w_hist)/2)]))
+        s.shape = (len(s),1)
+        t = np.ones(len(self.w_hist[round(len(self.w_hist)/2):]))
+        t.shape = (len(t),1)
+        s = np.vstack((s,t))
+        self.colorspec = []
+        self.colorspec = np.concatenate((s,np.flipud(s)),1)
+        self.colorspec = np.concatenate((self.colorspec,np.zeros((len(s),1))),1)
+        
+        # plot function, axes lines
+        ax.plot(w_plot,g_plot,color = 'k',zorder = 2)                           # plot function
+        ax.axhline(y=0, color='k',zorder = 1,linewidth = 0.25)
+        ax.axvline(x=0, color='k',zorder = 1,linewidth = 0.25)
+        ax.set_xlabel(r'$w$',fontsize = 13)
+        ax.set_ylabel(r'$g(w)$',fontsize = 13,rotation = 0,labelpad = 25)            
+            
+        ### plot all gradient descent points ###
+        for k in range(len(self.w_hist)):
+            # pick out current weight and function value from history, then plot
+            w_val = self.w_hist[k]
+            g_val = self.g(w_val)
+            
+            ax.scatter(w_val,g_val,s = 90,c = self.colorspec[k],edgecolor = 'k',linewidth = 0.5*((1/(float(k) + 1)))**(0.4),zorder = 3,marker = 'X')            # evaluation on function
+            ax.scatter(w_val,0,s = 90,facecolor = self.colorspec[k],edgecolor = 'k',linewidth = 0.5*((1/(float(k) + 1)))**(0.4), zorder = 3)
+                    
+
+    ##### draw still image of gradient descent on single-input function ####       
+    def compare_versions_2d(self,**kwargs):
+        self.g = kwargs['g']                            # input function
+        self.grad = compute_grad(self.g)              # gradient of input function
+        self.w_init =float( -2)                       # user-defined initial point (adjustable when calling each algorithm)
+        self.alpha = 10**-4                           # user-defined step length for gradient descent (adjustable when calling gradient descent)
+        self.max_its = 20                             # max iterations to run for each algorithm
+        self.w_hist = []                              # container for algorithm path
+        
+        # get new initial point if desired
+        if 'w_init' in kwargs:
+            self.w_init = float(kwargs['w_init'])
+            
+        # take in user defined step length
+        if 'alpha' in kwargs:
+            self.alpha = float(kwargs['alpha'])
+            
+        # take in user defined maximum number of iterations
+        if 'max_its' in kwargs:
+            self.max_its = float(kwargs['max_its'])
+            
+        # version of gradient descent to use (normalized or unnormalized)
+        self.version = 'unnormalized'
+        if 'version' in kwargs:
+            self.version = kwargs['version']
+            
+        # define viewing min and max
+        wmin = -3.1
+        wmax = 3.1
+        if 'wmin' in kwargs:
+            wmin = kwargs['wmin']
+        if 'wmax' in kwargs:
+            wmax = kwargs['wmax']
+            
+        # initialize figure
+        fig = plt.figure(figsize = (9,4))
+        artist = fig
+        
+        # remove whitespace from figure
+        #fig.subplots_adjust(left=0, right=1, bottom=0, top=1) # remove whitespace
+        #fig.subplots_adjust(wspace=0.01,hspace=0.01)
+
+        # create subplot with 2 panels, plot input function in center plot
+        gs = gridspec.GridSpec(1, 2, width_ratios=[1,1]) 
+
+        ax1 = plt.subplot(gs[0]);
+        ax2 = plt.subplot(gs[1]); 
+
+        # generate function for plotting on each slide
+        w_plot = np.linspace(wmin,wmax,500)
+        g_plot = self.g(w_plot)
+        g_range = max(g_plot) - min(g_plot)
+        ggap = g_range*0.1
+        width = 30       
+        
+        # plot function, axes lines
+        for ax in [ax1,ax2]:
+            ax.plot(w_plot,g_plot,color = 'k',zorder = 2)                           # plot function
+            ax.axhline(y=0, color='k',zorder = 1,linewidth = 0.25)
+            ax.axvline(x=0, color='k',zorder = 1,linewidth = 0.25)
+            ax.set_xlabel(r'$w$',fontsize = 13)
+            ax.set_ylabel(r'$g(w)$',fontsize = 13,rotation = 0,labelpad = 25)            
+        
+        ax1.set_title('normalized gradient descent',fontsize = 14)
+        ax2.set_title('gradient descent',fontsize = 14)
+
+        ### run normalized gradient descent and plot results ###
+        
+        # run normalized gradient descent method
+        self.version = 'normalized'
+        self.w_hist = []
+        self.run_gradient_descent()
+        
+        # colors for points --> green as the algorithm begins, yellow as it converges, red at final point
+        s = np.linspace(0,1,len(self.w_hist[:round(len(self.w_hist)/2)]))
+        s.shape = (len(s),1)
+        t = np.ones(len(self.w_hist[round(len(self.w_hist)/2):]))
+        t.shape = (len(t),1)
+        s = np.vstack((s,t))
+        self.colorspec = []
+        self.colorspec = np.concatenate((s,np.flipud(s)),1)
+        self.colorspec = np.concatenate((self.colorspec,np.zeros((len(s),1))),1)
+        
+        # plot results
+        for k in range(len(self.w_hist)):
+            # pick out current weight and function value from history, then plot
+            w_val = self.w_hist[k]
+            g_val = self.g(w_val)
+            
+            ax1.scatter(w_val,g_val,s = 90,c = self.colorspec[k],edgecolor = 'k',linewidth = 0.5*((1/(float(k) + 1)))**(0.4),zorder = 3,marker = 'X')            # evaluation on function
+            ax1.scatter(w_val,0,s = 90,facecolor = self.colorspec[k],edgecolor = 'k',linewidth = 0.5*((1/(float(k) + 1)))**(0.4), zorder = 3)
+            
+        # run unnormalized gradient descent method
+        self.version = 'unnormalized'
+        self.w_hist = []
+        self.run_gradient_descent()
+        
+        # plot results
+        for k in range(len(self.w_hist)):
+            # pick out current weight and function value from history, then plot
+            w_val = self.w_hist[k]
+            g_val = self.g(w_val)
+            
+            ax2.scatter(w_val,g_val,s = 90,c = self.colorspec[k],edgecolor = 'k',linewidth = 0.5*((1/(float(k) + 1)))**(0.4),zorder = 3,marker = 'X')            # evaluation on function
+            ax2.scatter(w_val,0,s = 90,facecolor = self.colorspec[k],edgecolor = 'k',linewidth = 0.5*((1/(float(k) + 1)))**(0.4), zorder = 3)
+            
+            
+                
+    ##### animate gradient descent method using single-input function #####
+    def animate_2d(self,**kwargs):
         self.g = kwargs['g']                            # input function
         self.grad = compute_grad(self.g)              # gradient of input function
         self.hess = compute_grad(self.grad)           # hessian of input function
