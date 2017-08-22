@@ -35,7 +35,7 @@ def draw_it(func,**kwargs):
     g_tracer = func(tracer) 
 
     # construct figure
-    fig = plt.figure(figsize = (5,2.5))
+    fig = plt.figure(figsize = (9,4))
     artist = fig
     
     # remove whitespace from figure

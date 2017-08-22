@@ -41,7 +41,6 @@ def double_2d_plot(func1,func2,**kwargs):
         
     # plot the functions 
     fig = plt.figure(figsize = (15,4))
-    plt.style.use('ggplot')
     ax1 = fig.add_subplot(121); ax2 = fig.add_subplot(122);    
     ax1.plot(w, f1, c='r', linewidth=2,zorder = 3)
     ax2.plot(w, f2, c='r', linewidth=2,zorder = 3)

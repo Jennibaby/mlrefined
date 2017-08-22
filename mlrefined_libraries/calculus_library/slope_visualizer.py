@@ -352,7 +352,7 @@ def visualize3d(func1,func2,func3,**kwargs):
     g_vals3.shape = (len(w),len(w))
        
     # construct figure
-    fig = plt.figure(figsize = (15,6),edgecolor = 'k')
+    fig = plt.figure(figsize = (9,4),edgecolor = 'k')
 
     # create subplot with 3 panels, plot input function in center plot
     gs = gridspec.GridSpec(1, 3, width_ratios=[1,1,1]) 
@@ -386,7 +386,7 @@ def visualize3d(func1,func2,func3,**kwargs):
             ax.add_artist(a)
             
             # label arrow
-            s = func([1.3,0]) - func([0,0])
+            s = func([1.5,0]) - func([0,0])
             annotate3D(ax, s='$(a_1,0)$', xyz=[s,0,0], fontsize=14, xytext=(-3,3),
                textcoords='offset points', ha='center',va='center') 
 
@@ -398,7 +398,7 @@ def visualize3d(func1,func2,func3,**kwargs):
             ax.add_artist(a)  
             
             # label arrow
-            t = func([0,1.3]) - func([0,0])
+            t = func([0,1.5]) - func([0,0])
             annotate3D(ax, s='$(0,a_2)$', xyz=[0,t,0], fontsize=14, xytext=(-3,3),
                textcoords='offset points', ha='center',va='center') 
                 

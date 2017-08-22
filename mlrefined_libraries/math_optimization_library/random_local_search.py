@@ -173,9 +173,9 @@ def visualize3d(func,**kwargs):
     
     #### scatter path points ####
     for k in range(len(eval_history)):
-        ax.scatter(pt_history[k,0],pt_history[k,1],0,s = 60,c = colorspec[k],edgecolor = 'k',linewidth = 0.5,zorder = 3)
+        ax.scatter(pt_history[k,0],pt_history[k,1],0,s = 60,c = colorspec[k],edgecolor = 'k',linewidth = 0.5*math.sqrt((1/(float(k) + 1))),zorder = 3)
         
-        ax2.scatter(pt_history[k,0],pt_history[k,1],s = 60,c = colorspec[k],edgecolor = 'k',linewidth = 1.5,zorder = 3)
+        ax2.scatter(pt_history[k,0],pt_history[k,1],s = 60,c = colorspec[k],edgecolor = 'k',linewidth = 1.5*math.sqrt((1/(float(k) + 1))),zorder = 3)
 
     #### connect points with arrows ####
     if len(eval_history) < 10:

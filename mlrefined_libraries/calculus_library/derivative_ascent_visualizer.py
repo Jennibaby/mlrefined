@@ -23,7 +23,7 @@ def compare_2d3d(func1,func2,**kwargs):
         view = kwargs['view']
         
     # construct figure
-    fig = plt.figure(figsize = (7,3))
+    fig = plt.figure(figsize = (9,4))
           
     # remove whitespace from figure
     fig.subplots_adjust(left=0, right=1, bottom=0, top=1) # remove whitespace
@@ -189,6 +189,10 @@ def visualize3d(func,**kwargs):
     if 'view' in kwargs:
         view = kwargs['view']
         
+    plot_descent = False
+    if 'plot_descent' in kwargs:
+        plot_descent = kwargs['plot_descent']
+        
     pt1 = [0,0]
     pt2 = [-0.5,0.5]
     if 'pt1' in kwargs:
@@ -197,17 +201,18 @@ def visualize3d(func,**kwargs):
         pt2 = kwargs['pt2']
        
     # construct figure
-    fig = plt.figure(figsize = (5,5))
+    fig = plt.figure(figsize = (10,5))
           
     # remove whitespace from figure
     fig.subplots_adjust(left=0, right=1, bottom=0, top=1) # remove whitespace
     fig.subplots_adjust(wspace=0.01,hspace=0.01)
         
     # create subplot with 3 panels, plot input function in center plot
-    gs = gridspec.GridSpec(1, 1, width_ratios=[1]) 
+    gs = gridspec.GridSpec(1, 3, width_ratios=[1,6,1]) 
 
-    ax1 = plt.subplot(gs[0],projection='3d'); 
-    #ax2 = plt.subplot(gs[1],projection='3d');
+    ax = plt.subplot(gs[0]);ax.axis('off')
+    ax2 = plt.subplot(gs[2]); ax2.axis('off')
+    ax1 = plt.subplot(gs[1],projection='3d'); 
     
     # define input space
     w_in = np.linspace(-2,2,200)
@@ -271,7 +276,7 @@ def visualize3d(func,**kwargs):
         # scatter tangency 
         ax.scatter(w_val[0],w_val[1],g_val,s = 70,c = 'lime',edgecolor = 'k',linewidth = 2)
 
-        ### add arrows and annotations ###
+        ##### add arrows and annotations for steepest ascent direction #####
         # re-assign func variable to tangent
         an = 1.7
         pname = 'g(' + str(pt[0]) + ',' + str(pt[1]) + ')'
@@ -310,6 +315,20 @@ def visualize3d(func,**kwargs):
             name = r'$\left(\frac{\mathrm{d}}{\mathrm{d}w_1}' + pname + r',\frac{\mathrm{d}}{\mathrm{d}w_2}' + pname + r'\right)$'
             annotate3D(ax, s=name, xyz=[s,t,0], fontsize=9, xytext=(-3,3),textcoords='offset points', ha='center',va='center') 
 
+        ###### add arrow and text for steepest descent direction #####
+        if plot_descent == True:
+            # full negative gradient
+            if abs(s) > 0.5 and abs(t) > 0.5:
+                a = Arrow3D([0, - (h([1,0])- h([0,0]))], [0, - (h([0,1])- h([0,0]))], [0, 0], mutation_scale=20,
+                        lw=2, arrowstyle="-|>", color="r")
+                ax.add_artist(a)  
+
+                s = - (h([an+0.2,0]) - h([0,0]))
+                t = - (h([0,an+0.2]) - h([0,0]))
+                name = r'$\left(-\frac{\mathrm{d}}{\mathrm{d}w_1}' + pname + r',-\frac{\mathrm{d}}{\mathrm{d}w_2}' + pname + r'\right)$'
+                annotate3D(ax, s=name, xyz=[s,t,0], fontsize=9, xytext=(-3,3),textcoords='offset points', ha='center',va='center') 
+
+            
         ### clean up plot ###
         # plot x and y axes, and clean up
         ax.xaxis.pane.fill = False
@@ -353,6 +372,10 @@ def animate_visualize2d(**kwargs):
     num_frames = 300                          # number of slides to create - the input range [-3,3] is divided evenly by this number
     if 'num_frames' in kwargs:
         num_frames = kwargs['num_frames']
+        
+    plot_descent = False
+    if 'plot_descent' in kwargs:
+        plot_descent = kwargs['plot_descent']
             
     # initialize figure
     fig = plt.figure(figsize = (16,8))
@@ -414,7 +437,7 @@ def animate_visualize2d(**kwargs):
         # plot the first order approximation
         ax.plot(wrange,h,color = 'lime',alpha = 0.5,linewidth = 6,zorder = 2)      # plot approx
             
-        #### plot slope as vector ####
+        #### plot derivative as vector ####
         func = lambda w: g_val + g_grad_val*w
         name = r'$\frac{\mathrm{d}}{\mathrm{d}w}g(' + r'{:.2f}'.format(w_val) + r')$'     
         if abs(func(1) - func(0)) >=0:
@@ -430,8 +453,31 @@ def animate_visualize2d(**kwargs):
             elif func(1)-func(0) < 0:
                 ax.arrow(0, 0, func(1)-func(0),0, head_width=-head_width, head_length=-head_length, fc='k', ec='k',linewidth=2.5,zorder = 3)
                 
-                ax.annotate(name, xy=(2, 1), xytext=(func(1+0.3) - 1.5 - func(0),0),fontsize=20
+                ax.annotate(name, xy=(2, 1), xytext=(func(1+0.3) - 1.3 - func(0),0),fontsize=20
                 )
+            
+        #### plot negative derivative as vector ####
+        if plot_descent == True:
+            ax.scatter(0,0,c = 'k',edgecolor = 'w',s = 100, linewidth = 0.5,zorder = 4)
+            
+            func = lambda w: g_val - g_grad_val*w
+            name = r'$-\frac{\mathrm{d}}{\mathrm{d}w}g(' + r'{:.2f}'.format(w_val) + r')$'     
+            if abs(func(1) - func(0)) >=0:
+                head_width = 0.08*(func(1) - func(0))
+                head_length = 0.2*(func(1) - func(0))
+
+                # annotate arrow and annotation
+                if func(1)-func(0) >= 0:
+                    ax.arrow(0, 0, func(1)-func(0),0, head_width=head_width, head_length=head_length, fc='r', ec='r',linewidth=2.5,zorder = 3)
+        
+                    ax.annotate(name, xy=(2, 1), xytext=(func(1 + 0.3)-func(0),0),fontsize=20
+                )
+                elif func(1)-func(0) < 0:
+                    ax.arrow(0, 0, func(1)-func(0),0, head_width=-head_width, head_length=-head_length, fc='r', ec='r',linewidth=2.5,zorder = 3)
+                
+                    ax.annotate(name, xy=(2, 1), xytext=(func(1+0.3) - 1.5 - func(0),0),fontsize=20
+                    )            
+            
             
         #### clean up panel ####
         # fix viewing limits on panel
