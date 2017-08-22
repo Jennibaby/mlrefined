@@ -19,7 +19,7 @@ import math
 import copy
 
 # random local search function
-def random_local_search(func,pt,max_its,num_samples,steplength):
+def random_local_search(func,pt,max_steps,num_samples,steplength):
     
     # starting point evaluation
     current_eval = func(pt)
@@ -28,15 +28,22 @@ def random_local_search(func,pt,max_its,num_samples,steplength):
     # loop over max_its descend until no improvement or max_its reached
     pt_history = [current_pt]
     eval_history = [current_eval]
-    for i in range(max_its):
+    for i in range(max_steps):
         # loop over num_samples, randomly sample direction and evaluate, move to best evaluation
         swap = 0
         keeper_pt = current_pt
-        for j in range(num_samples):
+        
+        # check if diminishing steplength rule used
+        if steplength == 'diminish':
+            steplength_temp = 1/(1 + i)
+        else:
+            steplength_temp = steplength
+        
+        for j in range(num_samples):            
             # produce direction
             theta = np.random.rand(1)
-            x = steplength*np.cos(2*np.pi*theta)
-            y = steplength*np.sin(2*np.pi*theta)
+            x = steplength_temp*np.cos(2*np.pi*theta)
+            y = steplength_temp*np.sin(2*np.pi*theta)
             new_pt = np.asarray([x,y])
             temp_pt = copy.deepcopy(keeper_pt) 
             new_pt += temp_pt
@@ -73,6 +80,14 @@ def visualize3d(func,**kwargs):
     if 'view' in kwargs:
         view = kwargs['view']
         
+    axes = False
+    if 'axes' in kwargs:
+        axes = kwargs['axes']
+       
+    plot_final = False
+    if 'plot_final' in kwargs:
+        plot_final = kwargs['plot_final']
+      
     num_contours = 10
     if 'num_contours' in kwargs:
         num_contours = kwargs['num_contours']
@@ -83,9 +98,9 @@ def visualize3d(func,**kwargs):
     pt = np.asarray(pt)
     pt.shape = (2,1)
      
-    max_its = 10
-    if 'max_its' in kwargs:
-        max_its = kwargs['max_its']
+    max_steps = 10
+    if 'max_steps' in kwargs:
+        max_steps = kwargs['max_steps']
     num_samples = 10
     if 'num_samples' in kwargs:
         num_samples = kwargs['num_samples'] 
@@ -95,16 +110,15 @@ def visualize3d(func,**kwargs):
         
     ##### construct figure with panels #####
     # construct figure
-    fig = plt.figure(figsize = (7,3))
+    fig = plt.figure(figsize = (9,3))
           
     # remove whitespace from figure
     fig.subplots_adjust(left=0, right=1, bottom=0, top=1) # remove whitespace
-    fig.subplots_adjust(wspace=0.01,hspace=0.01)
         
     # create subplot with 3 panels, plot input function in center plot
-    gs = gridspec.GridSpec(1, 2, width_ratios=[1,1]) 
+    gs = gridspec.GridSpec(1, 2, width_ratios=[1,2]) 
     ax = plt.subplot(gs[0],projection='3d'); 
-    ax2 = plt.subplot(gs[1]); 
+    ax2 = plt.subplot(gs[1],aspect='equal'); 
     
     #### define input space for function and evaluate ####
     w = np.linspace(-wmax,wmax,200)
@@ -123,12 +137,30 @@ def visualize3d(func,**kwargs):
     # plot z=0 plane 
     ax.plot_surface(w1_vals, w2_vals, func_vals*0, alpha = 0.1,color = 'w',zorder = 1,rstride=25, cstride=25,linewidth=0.3,edgecolor = 'k') 
     
-    ### make contour right plot 
+    ### make contour right plot - as well as horizontal and vertical axes ###
     ax2.contour(w1_vals, w2_vals, func_vals,num_contours,colors = 'k')
+    if axes == True:
+        ax2.axhline(linestyle = '--', color = 'k',linewidth = 1)
+        ax2.axvline(linestyle = '--', color = 'k',linewidth = 1)
     
     #### run local random search algorithm ####
-    pt_history,eval_history = random_local_search(func,pt,max_its,num_samples,steplength)
+    pt_history,eval_history = random_local_search(func,pt,max_steps,num_samples,steplength)
 
+    ### plot circle on which point lies, as well as step length circle - used only for simple quadratic
+    if plot_final == True:
+        # plot contour of quadratic on which final point was plotted
+        f = pt_history[-1]
+        val = np.linalg.norm(f)
+        theta = np.linspace(0,1,400)
+        x = val*np.cos(2*np.pi*theta) 
+        y = val*np.sin(2*np.pi*theta) 
+        ax2.plot(x,y,color = 'r',linestyle = '--',linewidth = 1)
+
+        # plot direction sampling circle centered at final point
+        x = steplength*np.cos(2*np.pi*theta) + f[0]
+        y = steplength*np.sin(2*np.pi*theta) + f[1]
+        ax2.plot(x,y,color = 'b',linewidth = 1)    
+    
     # colors for points
     s = np.linspace(0,1,len(eval_history[:round(len(eval_history)/2)]))
     s.shape = (len(s),1)
@@ -141,27 +173,31 @@ def visualize3d(func,**kwargs):
     
     #### scatter path points ####
     for k in range(len(eval_history)):
-        ax.scatter(pt_history[k,0],pt_history[k,1],0,s = 60,c = colorspec[k],edgecolor = 'k',linewidth = 2,zorder = 3)
+        ax.scatter(pt_history[k,0],pt_history[k,1],0,s = 60,c = colorspec[k],edgecolor = 'k',linewidth = 0.5,zorder = 3)
         
-        ax2.scatter(pt_history[k,0],pt_history[k,1],s = 60,c = colorspec[k],edgecolor = 'k',linewidth = 2,zorder = 3)
+        ax2.scatter(pt_history[k,0],pt_history[k,1],s = 60,c = colorspec[k],edgecolor = 'k',linewidth = 1.5,zorder = 3)
 
     #### connect points with arrows ####
-    for i in range(len(eval_history)-1):
-        pt1 = pt_history[i]
-        pt2 = pt_history[i+1]
+    if len(eval_history) < 10:
+        for i in range(len(eval_history)-1):
+            pt1 = pt_history[i]
+            pt2 = pt_history[i+1]
         
-        # draw arrow in left plot
-        a = Arrow3D([pt1[0],pt2[0]], [pt1[1],pt2[1]], [0, 0], mutation_scale=10, lw=2, arrowstyle="-|>", color="k")
-        ax.add_artist(a)
-                
-        # draw 2d arrow in right plot
-        ax2.arrow(pt1[0],pt1[1],(pt2[0] - pt1[0])*0.85,(pt2[1] - pt1[1])*0.85, head_width=0.1, head_length=0.1, fc='k', ec='k',linewidth=3,zorder = 2,length_includes_head=True)
+            # draw arrow in left plot
+            a = Arrow3D([pt1[0],pt2[0]], [pt1[1],pt2[1]], [0, 0], mutation_scale=10, lw=2, arrowstyle="-|>", color="k")
+            ax.add_artist(a)
+                    
+            # draw 2d arrow in right plot
+            ax2.arrow(pt1[0],pt1[1],(pt2[0] - pt1[0])*0.78,(pt2[1] - pt1[1])*0.78, head_width=0.1, head_length=0.1, fc='k', ec='k',linewidth=3,zorder = 2,length_includes_head=True)
 
     ### cleanup panels ###
     ax.set_xlabel('$w_1$',fontsize = 12)
     ax.set_ylabel('$w_2$',fontsize = 12,rotation = 0)
     ax.set_title('$g(w_1,w_2)$',fontsize = 12)
     ax.view_init(view[0],view[1])
+    
+    ax2.set_xlabel('$w_1$',fontsize = 12)
+    ax2.set_ylabel('$w_2$',fontsize = 12,rotation = 0)
     
     # clean up axis
     ax.xaxis.pane.fill = False
@@ -175,17 +211,6 @@ def visualize3d(func,**kwargs):
     ax.xaxis._axinfo["grid"]['color'] =  (1,1,1,0)
     ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
     ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
-
-    '''
-    ax.set_xticks([-1,0,1])
-    ax.set_xticklabels([-1,0,1])
-    
-    ax.set_yticks([-1,0,1])
-    ax.set_yticklabels([-1,0,1])
-    
-    ax.set_zticks([0,1,2])
-    ax.set_zticklabels([0,1,2])
-    '''
     
     # plot
     plt.show()
