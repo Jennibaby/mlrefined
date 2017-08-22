@@ -40,7 +40,7 @@ def double_2d_plot(func1,func2,**kwargs):
     ymin -= ygap
         
     # plot the functions 
-    fig = plt.figure(figsize = (15,4))
+    fig = plt.figure(figsize = (9,4))
     ax1 = fig.add_subplot(121); ax2 = fig.add_subplot(122);    
     ax1.plot(w, f1, c='r', linewidth=2,zorder = 3)
     ax2.plot(w, f2, c='r', linewidth=2,zorder = 3)
@@ -91,8 +91,7 @@ def double_2d3d_plot(func1,func2,**kwargs):
     f2.shape = (500,500)
         
     # plot the functions 
-    fig = plt.figure(figsize = (15,4))
-    plt.style.use('ggplot')
+    fig = plt.figure(figsize = (9,4))
     
     # create subplot with 3 panels, plot input function in center plot
     gs = gridspec.GridSpec(1, 2, width_ratios=[1,1]) 
@@ -154,8 +153,7 @@ def triple_3dsum_plot(func1,func2,**kwargs):
     f2.shape = (500,500)
         
     # plot the functions 
-    fig = plt.figure(figsize = (15,4))
-    plt.style.use('ggplot')
+    fig = plt.figure(figsize = (9,3))
     
     # create subplot with 3 panels, plot input function in center plot
     gs = gridspec.GridSpec(1, 3, width_ratios=[1,1,1]) 
