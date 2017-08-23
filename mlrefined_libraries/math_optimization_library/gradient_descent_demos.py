@@ -42,9 +42,16 @@ class visualizer:
                 if grad_norm == 0:
                     grad_norm += 10**-6*np.sign(2*np.random.rand(1) - 1)
                 grad_eval /= grad_norm
+                
+           # check if diminishing steplength rule used
+            alpha = 0
+            if self.steplength == 'diminishing':
+                alpha = 1/(1 + j)
+            else:
+                alpha = float(self.steplength)            
             
             # take gradient descent step
-            w = w - self.alpha*grad_eval
+            w = w - alpha*grad_eval
             
             # record
             self.w_hist.append(w)
@@ -59,13 +66,21 @@ class visualizer:
         self.max_its = 20                             # max iterations to run for each algorithm
         self.w_hist = []                              # container for algorithm path
         
+        wmin = -3.1
+        wmax = 3.1
+        if 'wmin' in kwargs:            
+            wmin = kwargs['wmin']
+        if 'wmax' in kwargs:
+            wmax = kwargs['wmax']
+        
         # get new initial point if desired
-        if 'w_init' in kwargs:
-            self.w_init = float(kwargs['w_init'])
+        if 'w_inits' in kwargs:
+            self.w_inits = kwargs['w_inits']
+            self.w_inits = [float(s) for s in self.w_inits]
             
         # take in user defined step length
-        if 'alpha' in kwargs:
-            self.alpha = float(kwargs['alpha'])
+        if 'steplength' in kwargs:
+            self.steplength = kwargs['steplength']
             
         # take in user defined maximum number of iterations
         if 'max_its' in kwargs:
@@ -92,41 +107,46 @@ class visualizer:
         ax = plt.subplot(gs[1]); 
 
         # generate function for plotting on each slide
-        w_plot = np.linspace(-3.1,3.1,200)
+        w_plot = np.linspace(wmin,wmax,500)
         g_plot = self.g(w_plot)
         g_range = max(g_plot) - min(g_plot)
         ggap = g_range*0.1
         width = 30
-        
-        # run gradient descent method
-        self.w_hist = []
-        self.run_gradient_descent()
-        
-        # colors for points --> green as the algorithm begins, yellow as it converges, red at final point
-        s = np.linspace(0,1,len(self.w_hist[:round(len(self.w_hist)/2)]))
-        s.shape = (len(s),1)
-        t = np.ones(len(self.w_hist[round(len(self.w_hist)/2):]))
-        t.shape = (len(t),1)
-        s = np.vstack((s,t))
-        self.colorspec = []
-        self.colorspec = np.concatenate((s,np.flipud(s)),1)
-        self.colorspec = np.concatenate((self.colorspec,np.zeros((len(s),1))),1)
-        
-        # plot function, axes lines
-        ax.plot(w_plot,g_plot,color = 'k',zorder = 2)                           # plot function
-        ax.axhline(y=0, color='k',zorder = 1,linewidth = 0.25)
-        ax.axvline(x=0, color='k',zorder = 1,linewidth = 0.25)
-        ax.set_xlabel(r'$w$',fontsize = 13)
-        ax.set_ylabel(r'$g(w)$',fontsize = 13,rotation = 0,labelpad = 25)            
+       
+        #### loop over all initializations, run gradient descent algorithm for each and plot results ###
+        for j in range(len(self.w_inits)):
+            # get next initialization
+            self.w_init = self.w_inits[j]
             
-        ### plot all gradient descent points ###
-        for k in range(len(self.w_hist)):
-            # pick out current weight and function value from history, then plot
-            w_val = self.w_hist[k]
-            g_val = self.g(w_val)
+            # run grad descent for this init
+            self.w_hist = []
+            self.run_gradient_descent()
+        
+            # colors for points --> green as the algorithm begins, yellow as it converges, red at final point
+            s = np.linspace(0,1,len(self.w_hist[:round(len(self.w_hist)/2)]))
+            s.shape = (len(s),1)
+            t = np.ones(len(self.w_hist[round(len(self.w_hist)/2):]))
+            t.shape = (len(t),1)
+            s = np.vstack((s,t))
+            self.colorspec = []
+            self.colorspec = np.concatenate((s,np.flipud(s)),1)
+            self.colorspec = np.concatenate((self.colorspec,np.zeros((len(s),1))),1)
+        
+            # plot function, axes lines
+            ax.plot(w_plot,g_plot,color = 'k',zorder = 2)                           # plot function
+            ax.axhline(y=0, color='k',zorder = 1,linewidth = 0.25)
+            ax.axvline(x=0, color='k',zorder = 1,linewidth = 0.25)
+            ax.set_xlabel(r'$w$',fontsize = 13)
+            ax.set_ylabel(r'$g(w)$',fontsize = 13,rotation = 0,labelpad = 25)            
             
-            ax.scatter(w_val,g_val,s = 90,c = self.colorspec[k],edgecolor = 'k',linewidth = 0.5*((1/(float(k) + 1)))**(0.4),zorder = 3,marker = 'X')            # evaluation on function
-            ax.scatter(w_val,0,s = 90,facecolor = self.colorspec[k],edgecolor = 'k',linewidth = 0.5*((1/(float(k) + 1)))**(0.4), zorder = 3)
+            ### plot all gradient descent points ###
+            for k in range(len(self.w_hist)):
+                # pick out current weight and function value from history, then plot
+                w_val = self.w_hist[k]
+                g_val = self.g(w_val)
+            
+                ax.scatter(w_val,g_val,s = 90,c = self.colorspec[k],edgecolor = 'k',linewidth = 0.5*((1/(float(k) + 1)))**(0.4),zorder = 3,marker = 'X')            # evaluation on function
+                ax.scatter(w_val,0,s = 90,facecolor = self.colorspec[k],edgecolor = 'k',linewidth = 0.5*((1/(float(k) + 1)))**(0.4), zorder = 3)
                     
 
     ##### draw still image of gradient descent on single-input function ####       
@@ -143,8 +163,8 @@ class visualizer:
             self.w_init = float(kwargs['w_init'])
             
         # take in user defined step length
-        if 'alpha' in kwargs:
-            self.alpha = float(kwargs['alpha'])
+        if 'steplength' in kwargs:
+            self.steplength = kwargs['steplength']
             
         # take in user defined maximum number of iterations
         if 'max_its' in kwargs:
@@ -247,13 +267,25 @@ class visualizer:
         self.max_its = 20                             # max iterations to run for each algorithm
         self.w_hist = []                              # container for algorithm path
         
+        wmin = -3.1
+        wmax = 3.1
+        if 'wmin' in kwargs:            
+            wmin = kwargs['wmin']
+        if 'wmax' in kwargs:
+            wmax = kwargs['wmax']
+            
+        # version of gradient descent to use (normalized or unnormalized)
+        self.version = 'unnormalized'
+        if 'version' in kwargs:
+            self.version = kwargs['version']
+            
         # get new initial point if desired
         if 'w_init' in kwargs:
             self.w_init = float(kwargs['w_init'])
             
         # take in user defined step length
-        if 'alpha' in kwargs:
-            self.alpha = float(kwargs['alpha'])
+        if 'steplength' in kwargs:
+            self.steplength = kwargs['steplength']
             
         # take in user defined maximum number of iterations
         if 'max_its' in kwargs:
@@ -275,7 +307,7 @@ class visualizer:
         ax = plt.subplot(gs[1]); 
 
         # generate function for plotting on each slide
-        w_plot = np.linspace(-3.1,3.1,200)
+        w_plot = np.linspace(wmin,wmax,200)
         g_plot = self.g(w_plot)
         g_range = max(g_plot) - min(g_plot)
         ggap = g_range*0.1
@@ -317,8 +349,8 @@ class visualizer:
             if k == 0:
                 w_val = self.w_init
                 g_val = self.g(w_val)
-                ax.scatter(w_val,g_val,s = 100,c = 'm',edgecolor = 'k',linewidth = 0.7,zorder = 3, marker = 'X')            # plot point of tangency
-                ax.scatter(w_val,0,s = 100,c = 'm',edgecolor = 'k',linewidth = 0.7, zorder = 3)
+                ax.scatter(w_val,g_val,s = 90,c = self.colorspec[k],edgecolor = 'k',linewidth = 0.5*((1/(float(k) + 1)))**(0.4),zorder = 3,marker = 'X')            # evaluation on function
+                ax.scatter(w_val,0,s = 90,facecolor = self.colorspec[k],edgecolor = 'k',linewidth = 0.5*((1/(float(k) + 1)))**(0.4), zorder = 3)
                 
                 # draw dashed line connecting w axis to point on cost function
                 s = np.linspace(0,g_val)
@@ -377,7 +409,7 @@ class visualizer:
                     ax.scatter(w_zero,g_zero,s = 100,c = 'm',edgecolor = 'k',linewidth = 0.7,zorder = 3, marker = 'X')            # plot point of tangency
                  
             # fix viewing limits
-            ax.set_xlim([-3,3])
+            ax.set_xlim([wmin-0.1,wmax+0.1])
             ax.set_ylim([min(g_plot) - ggap,max(g_plot) + ggap])
             ax.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
             
