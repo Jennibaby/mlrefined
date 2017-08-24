@@ -34,11 +34,11 @@ class visualizer:
             w_old = w
             
             # plug in value into func and derivative
-            grad_eval = float(self.grad(w))
+            grad_eval = self.grad(w)
             
             # normalized or unnormalized?
             if self.version == 'normalized':
-                grad_norm = abs(grad_eval)
+                grad_norm = np.linalg.norm(grad_eval)
                 if grad_norm == 0:
                     grad_norm += 10**-6*np.sign(2*np.random.rand(1) - 1)
                 grad_eval /= grad_norm
@@ -212,8 +212,8 @@ class visualizer:
             ax.set_xlabel(r'$w$',fontsize = 13)
             ax.set_ylabel(r'$g(w)$',fontsize = 13,rotation = 0,labelpad = 25)            
         
-        ax1.set_title('normalized gradient descent',fontsize = 14)
-        ax2.set_title('gradient descent',fontsize = 14)
+        ax1.set_title('normalized gradient descent',fontsize = 13)
+        ax2.set_title('unnormalized gradient descent',fontsize = 13)
 
         ### run normalized gradient descent and plot results ###
         
@@ -259,9 +259,8 @@ class visualizer:
                 
     ##### animate gradient descent method using single-input function #####
     def animate_2d(self,**kwargs):
-        self.g = kwargs['g']                            # input function
+        self.g = kwargs['g']                          # input function
         self.grad = compute_grad(self.g)              # gradient of input function
-        self.hess = compute_grad(self.grad)           # hessian of input function
         self.w_init =float( -2)                       # user-defined initial point (adjustable when calling each algorithm)
         self.alpha = 10**-4                           # user-defined step length for gradient descent (adjustable when calling gradient descent)
         self.max_its = 20                             # max iterations to run for each algorithm
@@ -363,8 +362,8 @@ class visualizer:
                 for j in range(min(k-1,len(self.w_hist))):  
                     w_val = self.w_hist[j]
                     g_val = self.g(w_val)
-                    ax.scatter(w_val,g_val,s = 90,c = self.colorspec[j],edgecolor = 'k',linewidth = 0.7,zorder = 3,marker = 'X')            # plot point of tangency
-                    ax.scatter(w_val,0,s = 90,facecolor = self.colorspec[j],edgecolor = 'k',linewidth = 0.7, zorder = 2)
+                    ax.scatter(w_val,g_val,s = 90,c = self.colorspec[j],edgecolor = 'k',linewidth = 0.5*((1/(float(j) + 1)))**(0.4),zorder = 3,marker = 'X')            # plot point of tangency
+                    ax.scatter(w_val,0,s = 90,facecolor = self.colorspec[j],edgecolor = 'k',linewidth =  0.5*((1/(float(j) + 1)))**(0.4), zorder = 2)
                     
             # plot surrogate function and travel-to point
             if k > 0 and k < len(self.w_hist) + 1:          
@@ -423,3 +422,140 @@ class visualizer:
         
         return(anim)
 
+    # animator for random local search
+    def visualize3d(self,g,w_init,steplength,max_its,**kwargs):
+        ### input arguments ###        
+        self.g = g
+        self.steplength = steplength
+        self.max_its = max_its
+        self.grad = compute_grad(self.g)              # gradient of input function
+
+        wmax = 1
+        if 'wmax' in kwargs:
+            wmax = kwargs['wmax'] + 0.5
+
+        view = [20,-50]
+        if 'view' in kwargs:
+            view = kwargs['view']
+
+        axes = False
+        if 'axes' in kwargs:
+            axes = kwargs['axes']
+
+        plot_final = False
+        if 'plot_final' in kwargs:
+            plot_final = kwargs['plot_final']
+
+        num_contours = 10
+        if 'num_contours' in kwargs:
+            num_contours = kwargs['num_contours']
+
+        # version of gradient descent to use (normalized or unnormalized)
+        self.version = 'unnormalized'
+        if 'version' in kwargs:
+            self.version = kwargs['version']
+            
+        # get initial point 
+        self.w_init = np.asarray([float(s) for s in w_init])
+                    
+        # take in user defined step length
+        self.steplength = steplength
+            
+        # take in user defined maximum number of iterations
+        self.max_its = max_its
+            
+        ##### construct figure with panels #####
+        # construct figure
+        fig = plt.figure(figsize = (9,3))
+
+        # remove whitespace from figure
+        fig.subplots_adjust(left=0, right=1, bottom=0, top=1) # remove whitespace
+
+        # create subplot with 3 panels, plot input function in center plot
+        gs = gridspec.GridSpec(1, 2, width_ratios=[1,2]) 
+        ax = plt.subplot(gs[0],projection='3d'); 
+        ax2 = plt.subplot(gs[1],aspect='equal'); 
+
+        #### define input space for function and evaluate ####
+        w = np.linspace(-wmax,wmax,200)
+        w1_vals, w2_vals = np.meshgrid(w,w)
+        w1_vals.shape = (len(w)**2,1)
+        w2_vals.shape = (len(w)**2,1)
+        h = np.concatenate((w1_vals,w2_vals),axis=1)
+        func_vals = np.asarray([g(s) for s in h])
+        w1_vals.shape = (len(w),len(w))
+        w2_vals.shape = (len(w),len(w))
+        func_vals.shape = (len(w),len(w))
+
+        # plot function 
+        ax.plot_surface(w1_vals, w2_vals, func_vals, alpha = 0.1,color = 'w',rstride=25, cstride=25,linewidth=1,edgecolor = 'k',zorder = 2)
+
+        # plot z=0 plane 
+        ax.plot_surface(w1_vals, w2_vals, func_vals*0, alpha = 0.1,color = 'w',zorder = 1,rstride=25, cstride=25,linewidth=0.3,edgecolor = 'k') 
+
+        ### make contour right plot - as well as horizontal and vertical axes ###
+        ax2.contour(w1_vals, w2_vals, func_vals,num_contours,colors = 'k')
+        if axes == True:
+            ax2.axhline(linestyle = '--', color = 'k',linewidth = 1)
+            ax2.axvline(linestyle = '--', color = 'k',linewidth = 1)
+
+        #### run local random search algorithm ####
+        self.w_hist = []
+        self.run_gradient_descent()
+
+        # colors for points
+        s = np.linspace(0,1,len(self.w_hist[:round(len(self.w_hist)/2)]))
+        s.shape = (len(s),1)
+        t = np.ones(len(self.w_hist[round(len(self.w_hist)/2):]))
+        t.shape = (len(t),1)
+        s = np.vstack((s,t))
+        colorspec = []
+        colorspec = np.concatenate((s,np.flipud(s)),1)
+        colorspec = np.concatenate((colorspec,np.zeros((len(s),1))),1)
+
+        #### scatter path points ####
+        for k in range(len(self.w_hist)):
+            w_now = self.w_hist[k]
+            ax.scatter(w_now[0],w_now[1],0,s = 60,c = colorspec[k],edgecolor = 'k',linewidth = 0.5*math.sqrt((1/(float(k) + 1))),zorder = 3)
+
+            ax2.scatter(w_now[0],w_now[1],s = 60,c = colorspec[k],edgecolor = 'k',linewidth = 1.5*math.sqrt((1/(float(k) + 1))),zorder = 3)
+
+        #### connect points with arrows ####
+        if len(self.w_hist) < 10:
+            for i in range(len(eval_history)-1):
+                pt1 = self.w_hist[i]
+                pt2 = self.w_hist[i+1]
+
+                # draw arrow in left plot
+                a = Arrow3D([pt1[0],pt2[0]], [pt1[1],pt2[1]], [0, 0], mutation_scale=10, lw=2, arrowstyle="-|>", color="k")
+                ax.add_artist(a)
+
+                # draw 2d arrow in right plot
+                ax2.arrow(pt1[0],pt1[1],(pt2[0] - pt1[0])*0.78,(pt2[1] - pt1[1])*0.78, head_width=0.1, head_length=0.1, fc='k', ec='k',linewidth=3,zorder = 2,length_includes_head=True)
+
+        ### cleanup panels ###
+        ax.set_xlabel('$w_1$',fontsize = 12)
+        ax.set_ylabel('$w_2$',fontsize = 12,rotation = 0)
+        ax.set_title('$g(w_1,w_2)$',fontsize = 12)
+        ax.view_init(view[0],view[1])
+
+        ax2.set_xlabel('$w_1$',fontsize = 12)
+        ax2.set_ylabel('$w_2$',fontsize = 12,rotation = 0)
+        ax2.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
+        ax2.axvline(x=0, color='k',zorder = 0,linewidth = 0.5)
+
+        # clean up axis
+        ax.xaxis.pane.fill = False
+        ax.yaxis.pane.fill = False
+        ax.zaxis.pane.fill = False
+
+        ax.xaxis.pane.set_edgecolor('white')
+        ax.yaxis.pane.set_edgecolor('white')
+        ax.zaxis.pane.set_edgecolor('white')
+
+        ax.xaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+        ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+        ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+
+        # plot
+        plt.show()

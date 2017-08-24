@@ -118,7 +118,7 @@ class visualizer:
         # create subplot with 2 panels, plot input function in center plot
         gs = gridspec.GridSpec(1, 2, width_ratios=[1,1]) 
         ax1 = plt.subplot(gs[0]);
-        ax2 = plt.subplot(gs[1]); 
+        ax2 = plt.subplot(gs[1],sharey=ax1); 
         gs.update(wspace=0.5, hspace=0.1) 
 
         # generate function for plotting on each slide
@@ -227,6 +227,7 @@ class visualizer:
             ax2.set_xlabel('iteration',fontsize = 13)
             ax2.set_ylabel(r'$g(w)$',fontsize = 13,rotation = 0,labelpad = 25)
             ax1.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
+            ax2.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
 
             return artist,
 

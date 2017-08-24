@@ -20,7 +20,6 @@ import copy
 
 # random local search function
 def random_local_search(func,pt,max_steps,num_samples,steplength):
-    
     # starting point evaluation
     current_eval = func(pt)
     current_pt = pt
@@ -68,8 +67,114 @@ def random_local_search(func,pt,max_steps,num_samples,steplength):
     eval_history.shape = (np.shape(eval_history)[0],np.shape(eval_history)[1])
 
     return pt_history,eval_history
+
+# random local search function
+def random_local_search_2d(func,pt,max_steps,num_samples,steplength):
+    # starting point evaluation
+    current_eval = func(pt)
+    current_pt = pt
     
-# animator for recursive function
+    # loop over max_its descend until no improvement or max_its reached
+    pt_history = [current_pt]
+    eval_history = [current_eval]
+    for i in range(max_steps):
+        # loop over num_samples, randomly sample direction and evaluate, move to best evaluation
+        swap = 0
+        keeper_pt = current_pt
+        
+        # check if diminishing steplength rule used
+        if steplength == 'diminish':
+            steplength_temp = 1/(1 + i)
+        else:
+            steplength_temp = steplength
+        
+        for j in range(num_samples):            
+            # produce direction
+            new_pt = steplength*np.sign(2*np.random.rand(1) - 1)
+            temp_pt = copy.deepcopy(keeper_pt) 
+            new_pt += temp_pt
+            
+            # evaluate new point
+            new_eval = func(new_pt)
+            if new_eval < current_eval:
+                current_pt = new_pt
+                current_eval = new_eval
+                swap = 1
+        
+            # if nothing has changed
+            if swap == 1:
+                pt_history.append(current_pt)
+                eval_history.append(current_eval)
+    
+    # translate to array, reshape appropriately
+    pt_history = np.asarray(pt_history)
+    eval_history = np.asarray(eval_history)
+
+    return pt_history,eval_history
+
+##### draw still image of gradient descent on single-input function ####       
+def draw_2d(g,steplength,max_steps,w_inits,num_samples,**kwargs):
+    wmin = -3.1
+    wmax = 3.1
+    if 'wmin' in kwargs:            
+        wmin = kwargs['wmin']
+    if 'wmax' in kwargs:
+        wmax = kwargs['wmax'] 
+        
+    # initialize figure
+    fig = plt.figure(figsize = (9,4))
+    artist = fig
+
+    # create subplot with 3 panels, plot input function in center plot
+    gs = gridspec.GridSpec(1, 3, width_ratios=[1,4,1]) 
+    ax1 = plt.subplot(gs[0]); ax1.axis('off')
+    ax3 = plt.subplot(gs[2]); ax3.axis('off')
+    ax = plt.subplot(gs[1]); 
+
+    # generate function for plotting on each slide
+    w_plot = np.linspace(wmin,wmax,500)
+    g_plot = [g(s) for s in w_plot]
+    g_range = max(g_plot) - min(g_plot)
+    ggap = g_range*0.1
+    width = 30
+       
+    #### loop over all initializations, run gradient descent algorithm for each and plot results ###
+    for j in range(len(w_inits)):
+        # get next initialization
+        w_init = w_inits[j]
+
+        # run grad descent for this init
+        func = g
+        pt_history,eval_history = random_local_search_2d(func,w_init,max_steps,num_samples,steplength)
+
+        # colors for points --> green as the algorithm begins, yellow as it converges, red at final point
+        s = np.linspace(0,1,len(pt_history[:round(len(eval_history)/2)]))
+        s.shape = (len(s),1)
+        t = np.ones(len(eval_history[round(len(eval_history)/2):]))
+        t.shape = (len(t),1)
+        s = np.vstack((s,t))
+        colorspec = []
+        colorspec = np.concatenate((s,np.flipud(s)),1)
+        colorspec = np.concatenate((colorspec,np.zeros((len(s),1))),1)
+        
+        # plot function, axes lines
+        ax.plot(w_plot,g_plot,color = 'k',zorder = 2)                           # plot function
+        ax.axhline(y=0, color='k',zorder = 1,linewidth = 0.25)
+        ax.axvline(x=0, color='k',zorder = 1,linewidth = 0.25)
+        ax.set_xlabel(r'$w$',fontsize = 13)
+        ax.set_ylabel(r'$g(w)$',fontsize = 13,rotation = 0,labelpad = 25)            
+            
+        ### plot all local search points ###
+        for k in range(len(eval_history)):
+            # pick out current weight and function value from history, then plot
+            w_val = pt_history[k]
+            g_val = eval_history[k]
+
+            ax.scatter(w_val,g_val,s = 90,c = colorspec[k],edgecolor = 'k',linewidth = 0.5*((1/(float(k) + 1)))**(0.4),zorder = 3,marker = 'X')            # evaluation on function
+            ax.scatter(w_val,0,s = 90,facecolor = colorspec[k],edgecolor = 'k',linewidth = 0.5*((1/(float(k) + 1)))**(0.4), zorder = 3)
+
+            
+# animator for random local search
 def visualize3d(func,**kwargs):
     ### input arguments ###        
     wmax = 1
