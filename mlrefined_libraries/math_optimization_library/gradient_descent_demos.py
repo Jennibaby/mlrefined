@@ -6,6 +6,10 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib import gridspec
 from IPython.display import clear_output
+from mpl_toolkits.mplot3d import proj3d
+from matplotlib.patches import FancyArrowPatch
+from matplotlib.text import Annotation
+from mpl_toolkits.mplot3d.proj3d import proj_transform
 
 # import autograd functionality
 from autograd import grad as compute_grad   # The only autograd function you may ever need
@@ -422,7 +426,7 @@ class visualizer:
         
         return(anim)
 
-    # animator for random local search
+    # visualize descent on multi-input function
     def visualize3d(self,g,w_init,steplength,max_its,**kwargs):
         ### input arguments ###        
         self.g = g
@@ -522,7 +526,7 @@ class visualizer:
 
         #### connect points with arrows ####
         if len(self.w_hist) < 10:
-            for i in range(len(eval_history)-1):
+            for i in range(len(self.w_hist)-1):
                 pt1 = self.w_hist[i]
                 pt2 = self.w_hist[i+1]
 
@@ -559,3 +563,166 @@ class visualizer:
 
         # plot
         plt.show()
+        
+    # compare normalized and unnormalized grad descent on 3d example
+    def compare_versions_3d(self,g,w_init,steplength,max_its,**kwargs):
+        ### input arguments ###        
+        self.g = g
+        self.steplength = steplength
+        self.max_its = max_its
+        self.grad = compute_grad(self.g)              # gradient of input function
+
+        wmax = 1
+        if 'wmax' in kwargs:
+            wmax = kwargs['wmax'] + 0.5
+
+        view = [20,-50]
+        if 'view' in kwargs:
+            view = kwargs['view']
+
+        axes = False
+        if 'axes' in kwargs:
+            axes = kwargs['axes']
+
+        plot_final = False
+        if 'plot_final' in kwargs:
+            plot_final = kwargs['plot_final']
+
+        num_contours = 10
+        if 'num_contours' in kwargs:
+            num_contours = kwargs['num_contours']
+            
+        # get initial point 
+        self.w_init = np.asarray([float(s) for s in w_init])
+                    
+        # take in user defined step length
+        self.steplength = steplength
+            
+        # take in user defined maximum number of iterations
+        self.max_its = max_its
+            
+        ##### construct figure with panels #####
+        # construct figure
+        fig = plt.figure(figsize = (12,6))
+
+        # create subplot with 3 panels, plot input function in center plot
+        gs = gridspec.GridSpec(2, 2, width_ratios=[1,4]) 
+        ax3 = plt.subplot(gs[0],projection='3d'); 
+        ax4 = plt.subplot(gs[1],aspect='equal'); 
+        ax5 = plt.subplot(gs[2],projection='3d'); 
+        ax6 = plt.subplot(gs[3],aspect='equal'); 
+        
+        # remove whitespace from figure
+        fig.subplots_adjust(left=0, right=1, bottom=0, top=1) # remove whitespace
+        
+        #### define input space for function and evaluate ####
+        w = np.linspace(-wmax,wmax,200)
+        w1_vals, w2_vals = np.meshgrid(w,w)
+        w1_vals.shape = (len(w)**2,1)
+        w2_vals.shape = (len(w)**2,1)
+        h = np.concatenate((w1_vals,w2_vals),axis=1)
+        func_vals = np.asarray([g(s) for s in h])
+        w1_vals.shape = (len(w),len(w))
+        w2_vals.shape = (len(w),len(w))
+        func_vals.shape = (len(w),len(w))
+
+        #### run local random search algorithms ####
+        for algo in ['normalized','unnormalized']:
+            # switch normalized / unnormalized
+            self.version = algo
+            title = ''
+            if self.version == 'normalized':
+                ax = ax3
+                ax2 = ax4
+                title = 'normalized gradient descent'
+            else:
+                ax = ax5
+                ax2 = ax6
+                title = 'unnormalized gradient descent'
+            
+           # plot function 
+            ax.plot_surface(w1_vals, w2_vals, func_vals, alpha = 0.1,color = 'w',rstride=25, cstride=25,linewidth=1,edgecolor = 'k',zorder = 2)
+
+            # plot z=0 plane 
+            ax.plot_surface(w1_vals, w2_vals, func_vals*0, alpha = 0.1,color = 'w',zorder = 1,rstride=25, cstride=25,linewidth=0.3,edgecolor = 'k') 
+
+            ### make contour right plot - as well as horizontal and vertical axes ###
+            ax2.contour(w1_vals, w2_vals, func_vals,num_contours,colors = 'k')
+            if axes == True:
+                ax2.axhline(linestyle = '--', color = 'k',linewidth = 1)
+                ax2.axvline(linestyle = '--', color = 'k',linewidth = 1)
+            
+            self.w_hist = []
+            self.run_gradient_descent()
+
+            # colors for points
+            s = np.linspace(0,1,len(self.w_hist[:round(len(self.w_hist)/2)]))
+            s.shape = (len(s),1)
+            t = np.ones(len(self.w_hist[round(len(self.w_hist)/2):]))
+            t.shape = (len(t),1)
+            s = np.vstack((s,t))
+            colorspec = []
+            colorspec = np.concatenate((s,np.flipud(s)),1)
+            colorspec = np.concatenate((colorspec,np.zeros((len(s),1))),1)
+
+            #### scatter path points ####
+            for k in range(len(self.w_hist)):
+                w_now = self.w_hist[k]
+                ax.scatter(w_now[0],w_now[1],0,s = 60,c = colorspec[k],edgecolor = 'k',linewidth = 0.5*math.sqrt((1/(float(k) + 1))),zorder = 3)
+
+                ax2.scatter(w_now[0],w_now[1],s = 60,c = colorspec[k],edgecolor = 'k',linewidth = 1.5*math.sqrt((1/(float(k) + 1))),zorder = 3)
+
+            #### connect points with arrows ####
+            if len(self.w_hist) < 10:
+                for i in range(len(self.w_hist)-1):
+                    pt1 = self.w_hist[i]
+                    pt2 = self.w_hist[i+1]
+        
+                    # draw arrow in left plot
+                    a = Arrow3D([pt1[0],pt2[0]], [pt1[1],pt2[1]], [0, 0], mutation_scale=10, lw=2, arrowstyle="-|>", color="k")
+                    ax.add_artist(a)
+
+                    # draw 2d arrow in right plot
+                    ax2.arrow(pt1[0],pt1[1],(pt2[0] - pt1[0])*0.78,(pt2[1] - pt1[1])*0.78, head_width=0.1, head_length=0.1, fc='k', ec='k',linewidth=3,zorder = 2,length_includes_head=True)
+
+            ### cleanup panels ###
+            ax.set_xlabel('$w_1$',fontsize = 12)
+            ax.set_ylabel('$w_2$',fontsize = 12,rotation = 0)
+            ax.set_title(title,fontsize = 12)
+            ax.view_init(view[0],view[1])
+    
+            ax2.set_xlabel('$w_1$',fontsize = 12)
+            ax2.set_ylabel('$w_2$',fontsize = 12,rotation = 0)
+            ax2.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
+            ax2.axvline(x=0, color='k',zorder = 0,linewidth = 0.5)
+
+            # clean up axis
+            ax.xaxis.pane.fill = False
+            ax.yaxis.pane.fill = False
+            ax.zaxis.pane.fill = False
+
+            ax.xaxis.pane.set_edgecolor('white')
+            ax.yaxis.pane.set_edgecolor('white')
+            ax.zaxis.pane.set_edgecolor('white')
+
+            ax.xaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+            ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+            ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+
+        # plot
+        plt.show()      
+        
+        
+#### custom 3d arrow and annotator functions ###    
+# nice arrow maker from https://stackoverflow.com/questions/11140163/python-matplotlib-plotting-a-3d-cube-a-sphere-and-a-vector
+class Arrow3D(FancyArrowPatch):
+
+    def __init__(self, xs, ys, zs, *args, **kwargs):
+        FancyArrowPatch.__init__(self, (0, 0), (0, 0), *args, **kwargs)
+        self._verts3d = xs, ys, zs
+
+    def draw(self, renderer):
+        xs3d, ys3d, zs3d = self._verts3d
+        xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
+        self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
+        FancyArrowPatch.draw(self, renderer)
