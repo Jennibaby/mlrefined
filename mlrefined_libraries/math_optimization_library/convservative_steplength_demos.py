@@ -116,7 +116,7 @@ class visualizer:
         if 'plot_final' in kwargs:
             plot_final = kwargs['plot_final']
 
-        num_contours = 10
+        num_contours = 15
         if 'num_contours' in kwargs:
             num_contours = kwargs['num_contours']
 
@@ -192,7 +192,32 @@ class visualizer:
             func_vals.shape = (len(w1),len(w2)) 
 
             ### make contour right plot - as well as horizontal and vertical axes ###
-            ax.contour(w1_vals, w2_vals, func_vals,num_contours,colors = 'k')
+            # set level ridges
+            num_contours = kwargs['num_contours']
+            levelmin = min(func_vals.flatten())
+            levelmax = max(func_vals.flatten())
+            cutoff = 0.5
+            cutoff = (levelmax - levelmin)*cutoff
+            numper = 3
+            levels1 = np.linspace(cutoff,levelmax,numper)
+            num_contours -= numper
+
+            levels2 = np.linspace(0,cutoff,min(num_contours,numper))
+            levels = np.unique(np.append(levels1,levels2))
+            num_contours -= numper
+            while num_contours > 0:
+                cutoff = levels[1]
+                levels2 = np.linspace(0,cutoff,min(num_contours,numper))
+                levels = np.unique(np.append(levels2,levels))
+                num_contours -= numper
+
+            
+            a = ax.contour(w1_vals, w2_vals, func_vals,levels = levels,colors = 'k')
+            ax.contourf(w1_vals, w2_vals, func_vals,levels = levels,cmap = 'Blues')
+            
+            # label contour lines?
+            #ax.clabel(a, inline=1, fontsize=10)
+
             if axes == True:
                 ax.axhline(linestyle = '--', color = 'k',linewidth = 1)
                 ax.axvline(linestyle = '--', color = 'k',linewidth = 1)
