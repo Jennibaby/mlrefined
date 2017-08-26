@@ -104,10 +104,6 @@ class visualizer:
         self.max_its = max_its
         self.grad = compute_grad(self.g)              # gradient of input function
 
-        wmax = 1
-        if 'wmax' in kwargs:
-            wmax = kwargs['wmax'] + 0.5
-
         view = [20,-50]
         if 'view' in kwargs:
             view = kwargs['view']
@@ -173,6 +169,15 @@ class visualizer:
             xmax += xgap
             ymin -= ygap
             ymax += ygap
+            
+            if 'xmin' in kwargs:
+                xmin = kwargs['xmin']
+            if 'xmax' in kwargs:
+                xmax = kwargs['xmax']
+            if 'ymin' in kwargs:
+                ymin = kwargs['ymin']
+            if 'ymax' in kwargs:
+                ymax = kwargs['ymax']  
         
             #### define input space for function and evaluate ####
             w1 = np.linspace(xmin,xmax,200)
@@ -233,7 +238,7 @@ class visualizer:
             ax2.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
             ax2.set_xlabel('iteration',fontsize = 12)
             ax2.set_ylabel(r'$g(w)$',fontsize = 12,rotation = 0,labelpad = 25)
-
+              
             ax.set_xlim([xmin,xmax])
             ax.set_ylim([ymin,ymax])
 
