@@ -80,8 +80,8 @@ class visualizer:
     # exact linesearch module
     def exact(self,w,grad_eval):
         # set parameters of linesearch at each step
-        valmax = 3
-        num_evals = 100
+        valmax = 10
+        num_evals = 3000
         
         # set alpha range
         alpha_range = np.linspace(0,valmax,num_evals)
@@ -104,6 +104,14 @@ class visualizer:
         self.max_its = max_its
         self.grad = compute_grad(self.g)              # gradient of input function
 
+        pts = 'off'
+        if 'pts' in kwargs:
+            pts = 'off'
+            
+        linewidth = 2.5
+        if 'linewidth' in kwargs:
+            linewidth = kwargs['linewidth']
+            
         view = [20,-50]
         if 'view' in kwargs:
             view = kwargs['view']
@@ -132,21 +140,25 @@ class visualizer:
         self.max_its = max_its
             
         ##### construct figure with panels #####
-        # construct figure
-        fig = plt.figure(figsize = (9,1 + (2.25)*step_count))
 
+        
         # remove whitespace from figure
-        fig.subplots_adjust(left=0, right=1, bottom=0, top=1) # remove whitespace
+        #fig.subplots_adjust(left=0, right=1, bottom=0, top=1) # remove whitespace
 
-        # create subplot with 3 panels, plot input function in center plot
-        gs = gridspec.GridSpec(step_count, 2, width_ratios=[2,1]) 
+
         
         # loop over steplengths, plot panels for each
         count = 0
         for step in steplength_vals:
-            
-            ax = plt.subplot(gs[2*count]); 
-            ax2 = plt.subplot(gs[2*count + 1]); 
+            # construct figure
+            fig, axs = plt.subplots(1, 2, figsize=(9,4))
+
+            # create subplot with 3 panels, plot input function in center plot
+            gs = gridspec.GridSpec(1, 2, width_ratios=[3,1]) 
+        
+        
+            ax = plt.subplot(gs[0],aspect = 'equal'); 
+            ax2 = plt.subplot(gs[1]) #  ,sharey = ax); 
 
             #### run local random search algorithm ####
             self.w_hist = []
@@ -178,10 +190,10 @@ class visualizer:
                 ymin = kwargs['ymin']
             if 'ymax' in kwargs:
                 ymax = kwargs['ymax']  
-        
+            
             #### define input space for function and evaluate ####
-            w1 = np.linspace(xmin,xmax,200)
-            w2 = np.linspace(ymin,ymax,200)
+            w1 = np.linspace(xmin,xmax,400)
+            w2 = np.linspace(ymin,ymax,400)
             w1_vals, w2_vals = np.meshgrid(w1,w2)
             w1_vals.shape = (len(w1)**2,1)
             w2_vals.shape = (len(w2)**2,1)
@@ -237,9 +249,10 @@ class visualizer:
                 g_val = self.g(w_val)
 
                 # plot in left panel
-                ax.scatter(w_val[0],w_val[1],s = 30,c = colorspec[j],edgecolor = 'k',linewidth = 1.5*math.sqrt((1/(float(j) + 1))),zorder = 3)
+                if pts == 'on':
+                    ax.scatter(w_val[0],w_val[1],s = 30,c = colorspec[j],edgecolor = 'k',linewidth = 1.5*math.sqrt((1/(float(j) + 1))),zorder = 3)
 
-                ax2.scatter(j,g_val,s = 30,c = colorspec[j],edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
+                    ax2.scatter(j,g_val,s = 30,c = colorspec[j],edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
 
                 # plot connector between points for visualization purposes
                 if j > 0:
@@ -247,7 +260,8 @@ class visualizer:
                     w_new = self.w_hist[j]
                     g_old = self.g(w_old)
                     g_new = self.g(w_new)
-                    ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = colorspec[j],linewidth = 2.5,alpha = 0.8,zorder = 2)      # plot approx
+         
+                    ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = colorspec[j],linewidth = linewidth,alpha = 1,zorder = 2)      # plot approx
                     ax2.plot([j-1,j],[g_old,g_new],color = colorspec[j],linewidth = 2,alpha = 0.4,zorder = 1)      # plot approx
 
             # clean panels
@@ -262,10 +276,18 @@ class visualizer:
             ax2.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
             ax2.set_xlabel('iteration',fontsize = 12)
             ax2.set_ylabel(r'$g(w)$',fontsize = 12,rotation = 0,labelpad = 25)
-              
+               
             ax.set_xlim([xmin,xmax])
             ax.set_ylim([ymin,ymax])
-
-        # plot
-        plt.show()
+            
+            ax.set(aspect = 'equal')
+            a = ax.get_position()
+            yr = ax.get_position().y1 - ax.get_position().y0
+            xr = ax.get_position().x1 - ax.get_position().x0
+            aspectratio=0.97 + xr
+            ratio_default=(ax2.get_xlim()[1]-ax2.get_xlim()[0])/(ax2.get_ylim()[1]-ax2.get_ylim()[0])
+            ax2.set_aspect(ratio_default*aspectratio)
+            
+            # plot
+            plt.show()
    
