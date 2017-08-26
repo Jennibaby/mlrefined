@@ -154,9 +154,7 @@ class visualizer:
             fig, axs = plt.subplots(1, 2, figsize=(9,4))
 
             # create subplot with 3 panels, plot input function in center plot
-            gs = gridspec.GridSpec(1, 2, width_ratios=[3,1]) 
-        
-        
+            gs = gridspec.GridSpec(1, 2, width_ratios=[2,1]) 
             ax = plt.subplot(gs[0],aspect = 'equal'); 
             ax2 = plt.subplot(gs[1]) #  ,sharey = ax); 
 
@@ -284,7 +282,7 @@ class visualizer:
             a = ax.get_position()
             yr = ax.get_position().y1 - ax.get_position().y0
             xr = ax.get_position().x1 - ax.get_position().x0
-            aspectratio=0.97 + xr
+            aspectratio=1.25*xr/yr# + min(xr,yr)
             ratio_default=(ax2.get_xlim()[1]-ax2.get_xlim()[0])/(ax2.get_ylim()[1]-ax2.get_ylim()[0])
             ax2.set_aspect(ratio_default*aspectratio)
             
