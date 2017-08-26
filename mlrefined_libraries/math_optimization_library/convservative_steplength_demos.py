@@ -202,19 +202,18 @@ class visualizer:
             levels1 = np.linspace(cutoff,levelmax,numper)
             num_contours -= numper
 
-            levels2 = np.linspace(0,cutoff,min(num_contours,numper))
+            levels2 = np.linspace(levelmin,cutoff,min(num_contours,numper))
             levels = np.unique(np.append(levels1,levels2))
             num_contours -= numper
             while num_contours > 0:
                 cutoff = levels[1]
-                levels2 = np.linspace(0,cutoff,min(num_contours,numper))
+                levels2 = np.linspace(levelmin,cutoff,min(num_contours,numper))
                 levels = np.unique(np.append(levels2,levels))
                 num_contours -= numper
 
-            
             a = ax.contour(w1_vals, w2_vals, func_vals,levels = levels,colors = 'k')
             ax.contourf(w1_vals, w2_vals, func_vals,levels = levels,cmap = 'Blues')
-            
+
             # label contour lines?
             #ax.clabel(a, inline=1, fontsize=10)
 
