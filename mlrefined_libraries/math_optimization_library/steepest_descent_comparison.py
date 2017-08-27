@@ -70,7 +70,6 @@ class visualizer:
             
             # take gradient descent step
             w = w - alpha*grad_eval
-            print (w)
             
             # record
             self.w_hist.append(w)
