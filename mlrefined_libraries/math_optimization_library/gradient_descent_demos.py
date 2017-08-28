@@ -17,7 +17,6 @@ import autograd.numpy as np
 import math
 import time
 
-# simple first order taylor series visualizer
 class visualizer:
     '''
     Illustrate gradient descent, Newton method, and Secant method for minimizing an input function, illustrating

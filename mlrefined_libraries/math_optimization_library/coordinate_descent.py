@@ -10,58 +10,20 @@ from mpl_toolkits.mplot3d import proj3d
 from matplotlib.patches import FancyArrowPatch
 from matplotlib.text import Annotation
 from mpl_toolkits.mplot3d.proj3d import proj_transform
-import copy
 
 # import autograd functionality
 from autograd import grad as compute_grad   # The only autograd function you may ever need
 import autograd.numpy as np
 import math
 import time
+import copy
 
 class visualizer:
     '''
-    Compares steepest descent using L1, L2, and Linfinity norms.
+    Illustrates how brute force coordinate descent w/linesearch works
     ''' 
-     
-    ######## gradient descent functions ########
-    # run gradient descent 
-    def run_gradient_descent(self):
-        w = copy.deepcopy(self.w_init)
-        self.w_hist = []
-        self.w_hist.append(w)
-        j = 0
-        for j in range(int(self.max_its)):            
-            # plug in value into func and derivative
-            grad_eval = self.grad(w)
-           
-            if self.version == 'normalized':
-                # normaize direction, if everything is perfectly zero then move in random direction
-                grad_norm = np.linalg.norm(grad_eval)
-                if grad_norm == 0:
-                    grad_eval = 2*np.random.rand(len(w)) - 1
-                    grad_norm = np.linalg.norm(grad_eval)
-                    grad_eval /= grad_norm
-                else:
-                    grad_eval /= grad_norm
-               
-            ### check what sort of steplength rule to employ ###
-            alpha = 0
-            if self.steplength == 'diminishing':
-                alpha = 1/(1 + j)
-            elif self.steplength == 'backtracking':
-                alpha = self.backtracking(w,grad_eval)
-            elif self.steplength == 'exact': 
-                alpha = self.exact(w,grad_eval)
-            else:
-                alpha = float(self.steplength)            
-            
-            # take gradient descent step
-            w = w - alpha*grad_eval
-            
-            # record
-            self.w_hist.append(w)
-    
-    # run coordinate descent 
+
+    # run coordinate descent - in this case for the demo we use coordinate gradient descent with exact line search
     def run_coordinate_descent(self):
         w = copy.deepcopy(self.w_init)
         self.w_hist = []
@@ -70,17 +32,6 @@ class visualizer:
         for j in range(int(self.max_its)):            
             # plug in value into func and derivative
             grad_eval = self.grad(w)
-               
-            ### check what sort of steplength rule to employ ###
-            alpha = 0
-            if self.steplength == 'diminishing':
-                alpha = 1/(1 + j)
-            elif self.steplength == 'backtracking':
-                alpha = self.backtracking(w,grad_eval)
-            elif self.steplength == 'exact': 
-                alpha = self.exact(w,grad_eval)
-            else:
-                alpha = float(self.steplength) 
                     
             # loop over coordinates
             for k in range(len(w)):                
@@ -95,30 +46,20 @@ class visualizer:
                         coord_grad = np.sign(2*np.random.rand(1) - 1)[0]
                     else:
                         coord_grad = np.sign(coord_grad)
-                    
+                 
+                ### check what sort of steplength rule to employ ###
+                alpha = 0
+                grad_temp = copy.deepcopy(grad_eval)
+                grad_temp[k] = coord_grad
+                alpha = self.exact(w,grad_temp)
+                
                 # take coordinate descent step - update single weight
                 w[k] -= alpha*coord_grad
 
                 # record each coordinate descent step for visualization
-                self.w_hist.append(copy.deepcopy(w))
-
+                self.w_hist.append(copy.deepcopy(w))            
                 
-    # backtracking linesearch module
-    def backtracking(self,w,grad_eval):
-        # set input parameters
-        alpha = 1
-        t = 0.5
-        
-        # compute initial function and gradient values
-        func_eval = self.g(w)
-        grad_norm = np.linalg.norm(grad_eval)**2
-        
-        # loop over and tune steplength
-        while self.g(w - alpha*grad_eval) > func_eval - alpha*0.5*grad_norm:
-            alpha = t*alpha
-        return alpha
-
-    # exact linesearch module
+    # exact linesearch module for brute coordinate descent
     def exact(self,w,grad_eval):
         # set parameters of linesearch at each step
         valmax = 10
@@ -136,12 +77,28 @@ class visualizer:
         return best_alpha
     
     # visualize descent on multi-input function
-    def run(self,g,w_init,steplength,max_its,**kwargs):
+    def run(self,g,w_init,max_its,**kwargs):        
         ### input arguments ###        
         self.g = g
         self.max_its = max_its
         self.grad = compute_grad(self.g)              # gradient of input function
+
+        pts = 'off'
+        if 'pts' in kwargs:
+            pts = 'off'
             
+        linewidth = 2.5
+        if 'linewidth' in kwargs:
+            linewidth = kwargs['linewidth']
+            
+        view = [20,-50]
+        if 'view' in kwargs:
+            view = kwargs['view']
+
+        axes = False
+        if 'axes' in kwargs:
+            axes = kwargs['axes']
+
         plot_final = False
         if 'plot_final' in kwargs:
             plot_final = kwargs['plot_final']
@@ -154,48 +111,26 @@ class visualizer:
         self.version = 'unnormalized'
         if 'version' in kwargs:
             self.version = kwargs['version']
-        
-        # steplength
-        self.steplength = steplength
             
         # get initial point 
         self.w_init = np.asarray([float(s) for s in w_init])
             
         # take in user defined maximum number of iterations
         self.max_its = max_its
-           
-        # loop over steplengths, plot panels for each
-        count = 0
+
         # construct figure
-        fig, axs = plt.subplots(1, 3, figsize=(9,4))
+        fig, axs = plt.subplots(1, 2, figsize=(9,4))
 
         # create subplot with 3 panels, plot input function in center plot
-        gs = gridspec.GridSpec(1, 2, width_ratios=[1,1]) 
-        ax1 = plt.subplot(gs[0],aspect = 'equal');
-        ax2 = plt.subplot(gs[1],aspect = 'equal'); 
+        gs = gridspec.GridSpec(1, 2, width_ratios=[2,1]) 
+        ax = plt.subplot(gs[0],aspect = 'equal'); 
+        ax2 = plt.subplot(gs[1]) #  ,sharey = ax); 
 
         #### run local random search algorithm ####
-       
-        # choose version
-        self.version = 'normalized'
-        if 'normalized' in kwargs:
-            self.version = kwargs['normalized']
-         
-        # run gradient descent
-        self.run_gradient_descent()
-        title = 'gradient descent'
-        self.draw_panel(ax1,title,**kwargs)
-        
-        # run coordinate descent
+        self.w_hist = []
+        self.steplength = 'exact'
         self.run_coordinate_descent()
-        title = 'coordinate descent'
-        self.draw_panel(ax2,title,**kwargs)
-
-        # plot
-        plt.show()
-     
-    # draw panel 
-    def draw_panel(self,ax,title,**kwargs):
+        
         # set viewing limits on contour plot
         xvals = [self.w_hist[s][0] for s in range(len(self.w_hist))]
         xvals.append(self.w_init[0])
@@ -211,7 +146,7 @@ class visualizer:
         xmax += xgap
         ymin -= ygap
         ymax += ygap
-
+            
         if 'xmin' in kwargs:
             xmin = kwargs['xmin']
         if 'xmax' in kwargs:
@@ -219,21 +154,7 @@ class visualizer:
         if 'ymin' in kwargs:
             ymin = kwargs['ymin']
         if 'ymax' in kwargs:
-            ymax = kwargs['ymax'] 
-        axes = False
-        if 'axes' in kwargs:
-            axes = kwargs['ymax']
-        pts = False
-        if 'pts' in kwargs:
-            pts = kwargs['pts']  
-        
-        pts = False
-        if 'pts' in kwargs:
-            pts = kwargs['pts']  
-            
-        linewidth = 2.5
-        if 'linewidth' in kwargs:
-            linewidth = kwargs['linewidth']
+            ymax = kwargs['ymax']  
             
         #### define input space for function and evaluate ####
         w1 = np.linspace(xmin,xmax,400)
@@ -242,7 +163,7 @@ class visualizer:
         w1_vals.shape = (len(w1)**2,1)
         w2_vals.shape = (len(w2)**2,1)
         h = np.concatenate((w1_vals,w2_vals),axis=1)
-        func_vals = np.asarray([self.g(s) for s in h])
+        func_vals = np.asarray([g(s) for s in h])
         w1_vals.shape = (len(w1),len(w1))
         w2_vals.shape = (len(w2),len(w2))
         func_vals.shape = (len(w1),len(w2)) 
@@ -270,6 +191,9 @@ class visualizer:
         a = ax.contour(w1_vals, w2_vals, func_vals,levels = levels,colors = 'k')
         ax.contourf(w1_vals, w2_vals, func_vals,levels = levels,cmap = 'Blues')
 
+        # label contour lines?
+        #ax.clabel(a, inline=1, fontsize=10)
+
         if axes == True:
             ax.axhline(linestyle = '--', color = 'k',linewidth = 1)
             ax.axvline(linestyle = '--', color = 'k',linewidth = 1)
@@ -290,20 +214,45 @@ class visualizer:
             g_val = self.g(w_val)
 
             # plot in left panel
-            if pts == 'True':
+            if pts == 'on':
                 ax.scatter(w_val[0],w_val[1],s = 30,c = colorspec[j],edgecolor = 'k',linewidth = 1.5*math.sqrt((1/(float(j) + 1))),zorder = 3)
+
+                ax2.scatter(j,g_val,s = 30,c = colorspec[j],edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
 
             # plot connector between points for visualization purposes
             if j > 0:
                 w_old = self.w_hist[j-1]
-                w_new = self.w_hist[j]     
+                w_new = self.w_hist[j]
+                g_old = self.g(w_old)
+                g_new = self.g(w_new)
+         
                 ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = colorspec[j],linewidth = linewidth,alpha = 1,zorder = 2)      # plot approx
+                ax2.plot([j-1,j],[g_old,g_new],color = colorspec[j],linewidth = 2,alpha = 0.4,zorder = 1)      # plot approx
 
-        # clean panel
+        # clean panels
+        title = self.steplength
+        if type(self.steplength) == float:
+            title = r'$\alpha = $' + str(self.steplength)
         ax.set_title(title,fontsize = 12)
         ax.set_xlabel('$w_1$',fontsize = 12)
         ax.set_ylabel('$w_2$',fontsize = 12,rotation = 0)
         ax.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
-        ax.axvline(x=0, color='k',zorder = 0,linewidth = 0.5)               
+        ax.axvline(x=0, color='k',zorder = 0,linewidth = 0.5)
+        ax2.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
+        ax2.set_xlabel('iteration',fontsize = 12)
+        ax2.set_ylabel(r'$g(w)$',fontsize = 12,rotation = 0,labelpad = 25)
+               
         ax.set_xlim([xmin,xmax])
         ax.set_ylim([ymin,ymax])
+            
+        ax.set(aspect = 'equal')
+        a = ax.get_position()
+        yr = ax.get_position().y1 - ax.get_position().y0
+        xr = ax.get_position().x1 - ax.get_position().x0
+        aspectratio=1.25*xr/yr# + min(xr,yr)
+        ratio_default=(ax2.get_xlim()[1]-ax2.get_xlim()[0])/(ax2.get_ylim()[1]-ax2.get_ylim()[0])
+        ax2.set_aspect(ratio_default*aspectratio)
+            
+        # plot
+        plt.show()
+   
