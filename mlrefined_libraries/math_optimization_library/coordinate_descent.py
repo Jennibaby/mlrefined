@@ -214,7 +214,7 @@ class visualizer:
             g_val = self.g(w_val)
 
             # plot in left panel
-            if pts == 'on':
+            if pts == 'True':
                 ax.scatter(w_val[0],w_val[1],s = 30,c = colorspec[j],edgecolor = 'k',linewidth = 1.5*math.sqrt((1/(float(j) + 1))),zorder = 3)
 
                 ax2.scatter(j,g_val,s = 30,c = colorspec[j],edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
@@ -226,14 +226,16 @@ class visualizer:
                 g_old = self.g(w_old)
                 g_new = self.g(w_new)
          
+                ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = 'k',linewidth = linewidth + 0.4,alpha = 1,zorder = 2)      # plot approx
                 ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = colorspec[j],linewidth = linewidth,alpha = 1,zorder = 2)      # plot approx
-                ax2.plot([j-1,j],[g_old,g_new],color = colorspec[j],linewidth = 2,alpha = 0.4,zorder = 1)      # plot approx
+                ax2.plot([j-1,j],[g_old,g_new],color = colorspec[j],linewidth = 2,alpha = 1,zorder = 2)      # plot approx
+                ax2.plot([j-1,j],[g_old,g_new],color = 'k',linewidth = 2.5,alpha = 1,zorder = 1)      # plot approx
 
         # clean panels
         title = self.steplength
         if type(self.steplength) == float:
             title = r'$\alpha = $' + str(self.steplength)
-        ax.set_title(title,fontsize = 12)
+        #ax.set_title(title,fontsize = 12)
         ax.set_xlabel('$w_1$',fontsize = 12)
         ax.set_ylabel('$w_2$',fontsize = 12,rotation = 0)
         ax.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
