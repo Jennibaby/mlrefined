@@ -17,6 +17,8 @@ import autograd.numpy as np
 import math
 import time
 import copy
+from matplotlib.collections import LineCollection
+from matplotlib.colors import ListedColormap, BoundaryNorm
 
 class visualizer:
     '''
@@ -226,11 +228,11 @@ class visualizer:
                 g_old = self.g(w_old)
                 g_new = self.g(w_new)
          
-                ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = 'k',linewidth = linewidth + 0.4,alpha = 1,zorder = 2)      # plot approx
                 ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = colorspec[j],linewidth = linewidth,alpha = 1,zorder = 2)      # plot approx
+                ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = 'k',linewidth = linewidth + 0.4,alpha = 1,zorder = 1)      # plot approx
                 ax2.plot([j-1,j],[g_old,g_new],color = colorspec[j],linewidth = 2,alpha = 1,zorder = 2)      # plot approx
                 ax2.plot([j-1,j],[g_old,g_new],color = 'k',linewidth = 2.5,alpha = 1,zorder = 1)      # plot approx
-
+               
         # clean panels
         title = self.steplength
         if type(self.steplength) == float:
