@@ -272,9 +272,11 @@ class visualizer:
             # plot connector between points for visualization purposes
             if j > 0:
                 w_old = self.w_hist[j-1]
-                w_new = self.w_hist[j]     
+                w_new = self.w_hist[j]    
+                
                 ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = colorspec[j],linewidth = linewidth,alpha = 1,zorder = 2)      # plot approx
-
+                ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = 'k',linewidth = linewidth + 0.4,alpha = 1,zorder = 1)      # plot approx
+                
         # clean panel
         ax.set_title(title,fontsize = 12)
         ax.set_xlabel('$w_1$',fontsize = 12)

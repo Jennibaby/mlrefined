@@ -257,9 +257,11 @@ class visualizer:
                     w_new = self.w_hist[j]
                     g_old = self.g(w_old)
                     g_new = self.g(w_new)
-         
+ 
                     ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = colorspec[j],linewidth = linewidth,alpha = 1,zorder = 2)      # plot approx
-                    ax2.plot([j-1,j],[g_old,g_new],color = colorspec[j],linewidth = 2,alpha = 0.4,zorder = 1)      # plot approx
+                    ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = 'k',linewidth = linewidth + 0.4,alpha = 1,zorder = 1)      # plot approx
+                    ax2.plot([j-1,j],[g_old,g_new],color = colorspec[j],linewidth = 2,alpha = 1,zorder = 2)      # plot approx
+                    ax2.plot([j-1,j],[g_old,g_new],color = 'k',linewidth = 2.5,alpha = 1,zorder = 1)      # plot approx
 
             # clean panels
             title = self.steplength
