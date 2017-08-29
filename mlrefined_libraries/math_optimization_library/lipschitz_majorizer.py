@@ -94,6 +94,9 @@ class visualizer:
             ax.plot(w_major,h_major,color = self.colors[0],zorder = 1,linewidth=2)                           # plot function
             ax.scatter(w_step,h(w_step),s = 60,c = 'blue',edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
             
+            # plot the next step given by the majorizer
+            ax.scatter(w_step,g_step,s = 60,c = 'red',edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
+          
             # label axes
             ax.set_xlabel('$w$',fontsize = 12)
             ax.set_ylabel('$g(w)$',fontsize = 12,rotation = 0,labelpad = 12)
