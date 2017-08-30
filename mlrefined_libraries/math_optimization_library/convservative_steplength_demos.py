@@ -65,7 +65,7 @@ class visualizer:
     def backtracking(self,w,grad_eval):
         # set input parameters
         alpha = 1
-        t = 0.5
+        t = 0.8
         
         # compute initial function and gradient values
         func_eval = self.g(w)
@@ -102,7 +102,8 @@ class visualizer:
         self.g = g
         self.max_its = max_its
         self.grad = compute_grad(self.g)              # gradient of input function
-
+        self.w_init = w_init
+        
         pts = 'off'
         if 'pts' in kwargs:
             pts = 'off'
@@ -133,19 +134,15 @@ class visualizer:
             self.version = kwargs['version']
             
         # get initial point 
-        self.w_init = np.asarray([float(s) for s in w_init])
+        if np.size(self.w_init) == 2:
+            self.w_init = np.asarray([float(s) for s in w_init])
+        else:
+            self.w_init = float(self.w_init)
             
         # take in user defined maximum number of iterations
         self.max_its = max_its
             
         ##### construct figure with panels #####
-
-        
-        # remove whitespace from figure
-        #fig.subplots_adjust(left=0, right=1, bottom=0, top=1) # remove whitespace
-
-
-        
         # loop over steplengths, plot panels for each
         count = 0
         for step in steplength_vals:
@@ -162,74 +159,7 @@ class visualizer:
             self.steplength = steplength_vals[count]
             self.run_gradient_descent()
             count+=1
-        
-            # set viewing limits on contour plot
-            xvals = [self.w_hist[s][0] for s in range(len(self.w_hist))]
-            xvals.append(self.w_init[0])
-            yvals = [self.w_hist[s][1] for s in range(len(self.w_hist))]
-            yvals.append(self.w_init[1])
-            xmax = max(xvals)
-            xmin = min(xvals)
-            xgap = (xmax - xmin)*0.1
-            ymax = max(yvals)
-            ymin = min(yvals)
-            ygap = (ymax - ymin)*0.1
-            xmin -= xgap
-            xmax += xgap
-            ymin -= ygap
-            ymax += ygap
             
-            if 'xmin' in kwargs:
-                xmin = kwargs['xmin']
-            if 'xmax' in kwargs:
-                xmax = kwargs['xmax']
-            if 'ymin' in kwargs:
-                ymin = kwargs['ymin']
-            if 'ymax' in kwargs:
-                ymax = kwargs['ymax']  
-            
-            #### define input space for function and evaluate ####
-            w1 = np.linspace(xmin,xmax,400)
-            w2 = np.linspace(ymin,ymax,400)
-            w1_vals, w2_vals = np.meshgrid(w1,w2)
-            w1_vals.shape = (len(w1)**2,1)
-            w2_vals.shape = (len(w2)**2,1)
-            h = np.concatenate((w1_vals,w2_vals),axis=1)
-            func_vals = np.asarray([g(s) for s in h])
-            w1_vals.shape = (len(w1),len(w1))
-            w2_vals.shape = (len(w2),len(w2))
-            func_vals.shape = (len(w1),len(w2)) 
-
-            ### make contour right plot - as well as horizontal and vertical axes ###
-            # set level ridges
-            num_contours = kwargs['num_contours']
-            levelmin = min(func_vals.flatten())
-            levelmax = max(func_vals.flatten())
-            cutoff = 0.5
-            cutoff = (levelmax - levelmin)*cutoff
-            numper = 3
-            levels1 = np.linspace(cutoff,levelmax,numper)
-            num_contours -= numper
-
-            levels2 = np.linspace(levelmin,cutoff,min(num_contours,numper))
-            levels = np.unique(np.append(levels1,levels2))
-            num_contours -= numper
-            while num_contours > 0:
-                cutoff = levels[1]
-                levels2 = np.linspace(levelmin,cutoff,min(num_contours,numper))
-                levels = np.unique(np.append(levels2,levels))
-                num_contours -= numper
-
-            a = ax.contour(w1_vals, w2_vals, func_vals,levels = levels,colors = 'k')
-            ax.contourf(w1_vals, w2_vals, func_vals,levels = levels,cmap = 'Blues')
-
-            # label contour lines?
-            #ax.clabel(a, inline=1, fontsize=10)
-
-            if axes == True:
-                ax.axhline(linestyle = '--', color = 'k',linewidth = 1)
-                ax.axvline(linestyle = '--', color = 'k',linewidth = 1)
-
             # colors for points
             s = np.linspace(0,1,len(self.w_hist[:round(len(self.w_hist)/2)]))
             s.shape = (len(s),1)
@@ -239,45 +169,157 @@ class visualizer:
             colorspec = []
             colorspec = np.concatenate((s,np.flipud(s)),1)
             colorspec = np.concatenate((colorspec,np.zeros((len(s),1))),1)
+    
+            #### define input space for function and evaluate ####
+            if np.size(self.w_init) == 2:           # function is multi-input, plot 3d function contour
+                # set viewing limits on contour plot
+                xvals = [self.w_hist[s][0] for s in range(len(self.w_hist))]
+                xvals.append(self.w_init[0])
+                yvals = [self.w_hist[s][1] for s in range(len(self.w_hist))]
+                yvals.append(self.w_init[1])
+                xmax = max(xvals)
+                xmin = min(xvals)
+                xgap = (xmax - xmin)*0.1
+                ymax = max(yvals)
+                ymin = min(yvals)
+                ygap = (ymax - ymin)*0.1
+                xmin -= xgap
+                xmax += xgap
+                ymin -= ygap
+                ymax += ygap
 
-            ### plot function decrease plot in right panel
-            for j in range(len(self.w_hist)):  
-                w_val = self.w_hist[j]
-                g_val = self.g(w_val)
+                if 'xmin' in kwargs:
+                    xmin = kwargs['xmin']
+                if 'xmax' in kwargs:
+                    xmax = kwargs['xmax']
+                if 'ymin' in kwargs:
+                    ymin = kwargs['ymin']
+                if 'ymax' in kwargs:
+                    ymax = kwargs['ymax']  
 
-                # plot in left panel
-                if pts == 'on':
-                    ax.scatter(w_val[0],w_val[1],s = 30,c = colorspec[j],edgecolor = 'k',linewidth = 1.5*math.sqrt((1/(float(j) + 1))),zorder = 3)
+                w1 = np.linspace(xmin,xmax,400)
+                w2 = np.linspace(ymin,ymax,400)
+                w1_vals, w2_vals = np.meshgrid(w1,w2)
+                w1_vals.shape = (len(w1)**2,1)
+                w2_vals.shape = (len(w2)**2,1)
+                h = np.concatenate((w1_vals,w2_vals),axis=1)
+                func_vals = np.asarray([g(s) for s in h])
+                w1_vals.shape = (len(w1),len(w1))
+                w2_vals.shape = (len(w2),len(w2))
+                func_vals.shape = (len(w1),len(w2)) 
 
+                ### make contour right plot - as well as horizontal and vertical axes ###
+                # set level ridges
+                num_contours = kwargs['num_contours']
+                levelmin = min(func_vals.flatten())
+                levelmax = max(func_vals.flatten())
+                cutoff = 0.5
+                cutoff = (levelmax - levelmin)*cutoff
+                numper = 3
+                levels1 = np.linspace(cutoff,levelmax,numper)
+                num_contours -= numper
+
+                levels2 = np.linspace(levelmin,cutoff,min(num_contours,numper))
+                levels = np.unique(np.append(levels1,levels2))
+                num_contours -= numper
+                while num_contours > 0:
+                    cutoff = levels[1]
+                    levels2 = np.linspace(levelmin,cutoff,min(num_contours,numper))
+                    levels = np.unique(np.append(levels2,levels))
+                    num_contours -= numper
+
+                a = ax.contour(w1_vals, w2_vals, func_vals,levels = levels,colors = 'k')
+                ax.contourf(w1_vals, w2_vals, func_vals,levels = levels,cmap = 'Blues')
+                
+                # plot points on contour
+                for j in range(len(self.w_hist)):  
+                    w_val = self.w_hist[j]
+                    g_val = self.g(w_val)
+
+                    # plot in left panel
+                    if pts == 'on':
+                        ax.scatter(w_val[0],w_val[1],s = 30,c = colorspec[j],edgecolor = 'k',linewidth = 1.5*math.sqrt((1/(float(j) + 1))),zorder = 3)
+
+                        ax2.scatter(j,g_val,s = 30,c = colorspec[j],edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
+
+                    # plot connector between points for visualization purposes
+                    if j > 0:
+                        w_old = self.w_hist[j-1]
+                        w_new = self.w_hist[j]
+                        g_old = self.g(w_old)
+                        g_new = self.g(w_new)
+     
+                        ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = colorspec[j],linewidth = linewidth,alpha = 1,zorder = 2)      # plot approx
+                        ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = 'k',linewidth = linewidth + 0.4,alpha = 1,zorder = 1)      # plot approx
+                        ax2.plot([j-1,j],[g_old,g_new],color = colorspec[j],linewidth = 2,alpha = 1,zorder = 2)      # plot approx
+                        ax2.plot([j-1,j],[g_old,g_new],color = 'k',linewidth = 2.5,alpha = 1,zorder = 1)      # plot approx
+            
+                # clean up panel
+                ax.set_xlabel('$w_1$',fontsize = 12)
+                ax.set_ylabel('$w_2$',fontsize = 12,rotation = 0)
+                ax.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
+                ax.axvline(x=0, color='k',zorder = 0,linewidth = 0.5)
+                ax.set_xlim([xmin,xmax])
+                ax.set_ylim([ymin,ymax])
+                
+                
+            else:    # function is single input, plot curve
+                if 'xmin' in kwargs:
+                    xmin = kwargs['xmin']
+                if 'xmax' in kwargs:
+                    xmax = kwargs['xmax']
+                    
+                w_plot = np.linspace(xmin,xmax,500)
+                g_plot = self.g(w_plot)
+                ax.plot(w_plot,g_plot,color = 'k',linewidth = 2,zorder = 2)
+                
+                # set viewing limits
+                ymin = min(g_plot)
+                ymax = max(g_plot)
+                ygap = (ymax - ymin)*0.2
+                ymin -= ygap
+                ymax += ygap
+                ax.set_ylim([ymin,ymax])
+                
+                # clean up panel
+                ax.axhline(y=0, color='k',zorder = 1,linewidth = 0.25)
+                ax.axvline(x=0, color='k',zorder = 1,linewidth = 0.25)
+                ax.set_xlabel(r'$w$',fontsize = 13)
+                ax.set_ylabel(r'$g(w)$',fontsize = 13,rotation = 0,labelpad = 25)   
+                
+                # function single-input, plot input and evaluation points on function
+                for j in range(len(self.w_hist)):  
+                    w_val = self.w_hist[j]
+                    g_val = self.g(w_val)
+            
+                    ax.scatter(w_val,g_val,s = 90,c = colorspec[j],edgecolor = 'k',linewidth = 0.5*((1/(float(j) + 1)))**(0.4),zorder = 3,marker = 'X')            # evaluation on function
+                    ax.scatter(w_val,0,s = 90,facecolor = colorspec[j],edgecolor = 'k',linewidth = 0.5*((1/(float(j) + 1)))**(0.4), zorder = 3)
+                    
                     ax2.scatter(j,g_val,s = 30,c = colorspec[j],edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
-
-                # plot connector between points for visualization purposes
-                if j > 0:
-                    w_old = self.w_hist[j-1]
-                    w_new = self.w_hist[j]
-                    g_old = self.g(w_old)
-                    g_new = self.g(w_new)
- 
-                    ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = colorspec[j],linewidth = linewidth,alpha = 1,zorder = 2)      # plot approx
-                    ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = 'k',linewidth = linewidth + 0.4,alpha = 1,zorder = 1)      # plot approx
-                    ax2.plot([j-1,j],[g_old,g_new],color = colorspec[j],linewidth = 2,alpha = 1,zorder = 2)      # plot approx
-                    ax2.plot([j-1,j],[g_old,g_new],color = 'k',linewidth = 2.5,alpha = 1,zorder = 1)      # plot approx
+                    
+                    # plot connector between points for visualization purposes
+                    if j > 0:
+                        w_old = self.w_hist[j-1]
+                        w_new = self.w_hist[j]
+                        g_old = self.g(w_old)
+                        g_new = self.g(w_new)
+     
+                        ax2.plot([j-1,j],[g_old,g_new],color = colorspec[j],linewidth = 2,alpha = 1,zorder = 2)      # plot approx
+                        ax2.plot([j-1,j],[g_old,g_new],color = 'k',linewidth = 2.5,alpha = 1,zorder = 1)      # plot approx
+            
+            if axes == True:
+                ax.axhline(linestyle = '--', color = 'k',linewidth = 1)
+                ax.axvline(linestyle = '--', color = 'k',linewidth = 1)
 
             # clean panels
             title = self.steplength
-            if type(self.steplength) == float:
+            if type(self.steplength) == float or type(self.steplength) == int:
                 title = r'$\alpha = $' + str(self.steplength)
             ax.set_title(title,fontsize = 12)
-            ax.set_xlabel('$w_1$',fontsize = 12)
-            ax.set_ylabel('$w_2$',fontsize = 12,rotation = 0)
-            ax.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
-            ax.axvline(x=0, color='k',zorder = 0,linewidth = 0.5)
+
             ax2.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
             ax2.set_xlabel('iteration',fontsize = 12)
             ax2.set_ylabel(r'$g(w)$',fontsize = 12,rotation = 0,labelpad = 25)
-               
-            ax.set_xlim([xmin,xmax])
-            ax.set_ylim([ymin,ymax])
             
             ax.set(aspect = 'equal')
             a = ax.get_position()

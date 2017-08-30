@@ -151,20 +151,20 @@ class visualizer:
         # run L2 first and plot
         self.version = 'L2'
         self.run_gradient_descent()
-        title = 'L2 steepest descent'
+        title = '$L_2$ steepest descent'
         self.draw_panel(ax1,title,**kwargs)
         
          
         # run L2 first and plot
         self.version = 'L1'
         self.run_gradient_descent()
-        title = 'L1 steepest descent'
+        title = '$L_1$ steepest descent'
         self.draw_panel(ax2,title,**kwargs)
         
         # run Linf first and plot
         self.version = 'Linf'
         self.run_gradient_descent()
-        title = 'Linf steepest descent'
+        title = '$L_{\infty}$ steepest descent'
         self.draw_panel(ax3,title,**kwargs)
     
         # plot
