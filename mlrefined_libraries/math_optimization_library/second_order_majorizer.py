@@ -118,7 +118,7 @@ class visualizer:
             
             ax.scatter(w_step,h_step,s = 60,c = 'blue',edgecolor = 'k',linewidth = 0.7,marker = 'X',zorder = 3)           
             ax.scatter(w_step,g_step,s = 60,c = 'lime',edgecolor = 'k',linewidth = 0.7,marker = 'X',zorder = 3)            # plot point of tangency
-            ax.scatter(w_step,0,s = 80,c = 'lime',edgecolor = 'k',linewidth = 0.7,marker = 'X',zorder = 3)            # plot point of tangency
+            ax.scatter(w_step,0,s = 80,c = 'lime',edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
             
             # plot visual aid for new point
             tempy = np.linspace(0,h_step,100)
