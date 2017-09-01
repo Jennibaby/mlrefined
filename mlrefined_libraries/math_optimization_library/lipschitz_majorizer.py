@@ -105,13 +105,18 @@ class visualizer:
             tempx = w_val*np.ones((100))
             ax.plot(tempx,tempy,linewidth = 0.7,color = 'k',linestyle = '--',zorder = 1)
             
+            # plot visual aid for new point
+            tempy = np.linspace(0,h_step,100)
+            tempx = w_step*np.ones((100))
+            ax.plot(tempx,tempy,linewidth = 0.7,color = 'k',linestyle = '--',zorder = 1)
+            
             # label axes
             ax.set_xlabel('$w$',fontsize = 12)
             ax.set_ylabel('$g(w)$',fontsize = 12,rotation = 0,labelpad = 12)
 
             # fix viewing limits on panel
             ax.set_xlim([-max_val,max_val])
-            ax.set_ylim([min(g_plot) - ggap,max(g_plot) + ggap])
+            ax.set_ylim([min(-0.3,min(g_plot) - ggap),max(max(g_plot) + ggap,0.3)])
             
             # set tickmarks
             ax.set_xticks(-np.arange(-round(max_val), round(max_val) + 1, 1.0))
