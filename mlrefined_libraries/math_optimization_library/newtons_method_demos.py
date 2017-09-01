@@ -40,13 +40,13 @@ class visualizer:
         self.w_hist = []
         self.w_hist.append(w)
         w_old = np.inf
-        for j in range(self.max_its):
+        for k in range(self.max_its):
             # plug in value into func and derivative
             grad_eval = self.grad(w)
             hess_eval = self.hess(w)
 
             # solve linear system for weights
-            w = w - np.dot(np.linalg.pinv(hess_eval + self.beta*np.eye(len(w))),grad_eval)
+            w = w - np.dot(np.linalg.pinv(hess_eval + self.beta*np.eye(np.size(w))),grad_eval)
                                 
             # record
             self.w_hist.append(w)
@@ -373,55 +373,6 @@ class visualizer:
             # set tickmarks
             ax.set_xticks(np.arange(round(xmin), round(xmax) + 1, 1.0))
             ax.set_yticks(np.arange(round(ymin), round(ymax) + 1, 1.0))
-                
-                
-        else:    # function is single input, plot curve
-            if 'xmin' in kwargs:
-                xmin = kwargs['xmin']
-            if 'xmax' in kwargs:
-                xmax = kwargs['xmax']
-                    
-            w_plot = np.linspace(xmin,xmax,500)
-            g_plot = self.g(w_plot)
-            ax.plot(w_plot,g_plot,color = 'k',linewidth = 2,zorder = 2)
-                
-            # set viewing limits
-            ymin = min(g_plot)
-            ymax = max(g_plot)
-            ygap = (ymax - ymin)*0.2
-            ymin -= ygap
-            ymax += ygap
-            ax.set_ylim([ymin,ymax])
-                
-            # clean up panel
-            ax.axhline(y=0, color='k',zorder = 1,linewidth = 0.25)
-            ax.axvline(x=0, color='k',zorder = 1,linewidth = 0.25)
-            ax.set_xlabel(r'$w$',fontsize = 13)
-            ax.set_ylabel(r'$g(w)$',fontsize = 13,rotation = 0,labelpad = 25)   
-                
-            # function single-input, plot input and evaluation points on function
-            for j in range(len(self.w_hist)):  
-                w_val = self.w_hist[j]
-                g_val = self.g(w_val)
-            
-                ax.scatter(w_val,g_val,s = 90,c = colorspec[j],edgecolor = 'k',linewidth = 0.5*((1/(float(j) + 1)))**(0.4),zorder = 3,marker = 'X')            # evaluation on function
-                ax.scatter(w_val,0,s = 90,facecolor = colorspec[j],edgecolor = 'k',linewidth = 0.5*((1/(float(j) + 1)))**(0.4), zorder = 3)
-                    
-                ax2.scatter(j,g_val,s = 30,c = colorspec[j],edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
-                    
-                # plot connector between points for visualization purposes
-                if j > 0:
-                    w_old = self.w_hist[j-1]
-                    w_new = self.w_hist[j]
-                    g_old = self.g(w_old)
-                    g_new = self.g(w_new)
-     
-                    ax2.plot([j-1,j],[g_old,g_new],color = colorspec[j],linewidth = 2,alpha = 1,zorder = 2)      # plot approx
-                    ax2.plot([j-1,j],[g_old,g_new],color = 'k',linewidth = 2.5,alpha = 1,zorder = 1)      # plot approx
-            
-        if axes == True:
-            ax.axhline(linestyle = '--', color = 'k',linewidth = 1)
-            ax.axvline(linestyle = '--', color = 'k',linewidth = 1)
 
         # clean panels
         ax2.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
