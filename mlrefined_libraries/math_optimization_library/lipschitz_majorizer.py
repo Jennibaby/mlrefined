@@ -25,21 +25,21 @@ class visualizer:
 
     # compute first order approximation
     def animate_it(self,**kwargs):
-        num_frames = 300                          # number of slides to create - the input range [-3,3] is divided evenly by this number
+        num_frames = 100                          # number of slides to create - the input range [-3,3] is divided evenly by this number
         if 'num_frames' in kwargs:
             num_frames = kwargs['num_frames']
             
         # initialize figure
-        fig = plt.figure(figsize = (9,4))
+        fig = plt.figure(figsize = (10,5))
         artist = fig
 
         # create subplot with 3 panels, plot input function in center plot
-        gs = gridspec.GridSpec(1, 3, width_ratios=[1,2, 1]) 
+        gs = gridspec.GridSpec(1, 3, width_ratios=[1,5, 1]) 
         ax1 = plt.subplot(gs[0]); ax1.axis('off');
         ax3 = plt.subplot(gs[2]); ax3.axis('off');
 
         # plot input function
-        ax = plt.subplot(gs[1])
+        ax = plt.subplot(gs[1],aspect = 'equal')
         
         max_val = 2.5
         if 'max_val' in kwargs:
@@ -82,21 +82,29 @@ class visualizer:
 
             # plot original function
             ax.plot(w_plot,g_plot,color = 'k',zorder = 0,linewidth=1)                           # plot function
-            
-            # plot the input/output tangency point
-            ax.scatter(w_val,g_val,s = 60,c = 'lime',edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
-            
+       
             # create and Lipschitz majorizer centered on w_val
             h = lambda w: g_val + grad_val*(w - w_val) + 1/(2*alpha)*(w - w_val)**2
             width = 2*max_val
             w_major = np.linspace(w_step - width,w_step + width,200)
             h_major = h(w_major)
-            ax.plot(w_major,h_major,color = self.colors[0],zorder = 1,linewidth=2)                           # plot function
-            ax.scatter(w_step,h(w_step),s = 60,c = 'blue',edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
+            h_step = h(w_step)
             
-            # plot the next step given by the majorizer
-            ax.scatter(w_step,g_step,s = 60,c = 'red',edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
-          
+            # plot majorizer
+            ax.plot(w_major,h_major,color = self.colors[1],zorder = 1,linewidth=2)   
+            
+            # plot all points
+            ax.scatter(w_step,h_step,s = 60,c = 'blue',edgecolor = 'k',linewidth = 0.7,marker = 'X',zorder = 3)           
+            ax.scatter(w_step,g_step,s = 60,c = 'lime',edgecolor = 'k',linewidth = 0.7,marker = 'X',zorder = 3)            # plot point of tangency
+            ax.scatter(w_step,0,s = 80,c = 'lime',edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
+            ax.scatter(w_val,g_val,s = 60,c = 'r',edgecolor = 'k',linewidth = 0.7,marker = 'X',zorder = 3)            # plot point of tangency
+            ax.scatter(w_val,0,s = 80,c = 'r',edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
+            
+            # plot visual aid for old point
+            tempy = np.linspace(0,g_val,100)
+            tempx = w_val*np.ones((100))
+            ax.plot(tempx,tempy,linewidth = 0.7,color = 'k',linestyle = '--',zorder = 1)
+            
             # label axes
             ax.set_xlabel('$w$',fontsize = 12)
             ax.set_ylabel('$g(w)$',fontsize = 12,rotation = 0,labelpad = 12)
@@ -104,7 +112,14 @@ class visualizer:
             # fix viewing limits on panel
             ax.set_xlim([-max_val,max_val])
             ax.set_ylim([min(g_plot) - ggap,max(g_plot) + ggap])
+            
+            # set tickmarks
+            ax.set_xticks(-np.arange(-round(max_val), round(max_val) + 1, 1.0))
+            ax.set_yticks(np.arange(round(min(g_plot) - ggap), round(max(g_plot) + ggap) + 1, 1.0))
                 
+            # set axis 
+            ax.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
+            
             return artist,
         
         anim = animation.FuncAnimation(fig, animate,frames=len(w_vals), interval=len(w_vals), blit=True)

@@ -47,7 +47,7 @@ class visualizer:
         w_vals = np.linspace(-max_val+0.1,max_val-0.1,num_frames)       # range of values over which to plot first / second order approximations
         
         # generate a range of values over which to plot input function, and derivatives
-        w_plot = np.linspace(-max_val,max_val,200)                  # input range for original function
+        w_plot = np.linspace(-max_val,max_val,1000)                  # input range for original function
         
         g_plot = self.g(w_plot)
         g_range = max(g_plot) - min(g_plot)             # used for cleaning up final plot

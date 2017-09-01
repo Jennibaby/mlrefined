@@ -11,6 +11,7 @@ import time
 from autograd import grad as compute_grad   # The only autograd function you may ever need
 import autograd.numpy as np
 import math
+from matplotlib import gridspec
 
 # simple first order taylor series visualizer
 class visualizer:
@@ -69,10 +70,17 @@ class visualizer:
             wmax = kwargs['wmax']
             
         # initialize figure
-        fig = plt.figure(figsize = (4,4))
+        fig = plt.figure(figsize = (10,5))
         artist = fig
-        ax = fig.add_subplot(111,aspect = 'auto')
+        
+       # create subplot with 3 panels, plot input function in center plot
+        gs = gridspec.GridSpec(1, 3, width_ratios=[1,5, 1]) 
+        ax1 = plt.subplot(gs[0]); ax1.axis('off');
+        ax3 = plt.subplot(gs[2]); ax3.axis('off');
 
+        # plot input function
+        ax = plt.subplot(gs[1],aspect = 'equal')
+        
         # generate function for plotting on each slide
         w_plot = np.linspace(-wmax,wmax,1000)
         g_plot = self.g(w_plot)
