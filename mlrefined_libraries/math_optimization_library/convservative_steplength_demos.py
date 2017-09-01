@@ -135,7 +135,7 @@ class visualizer:
             
         # get initial point 
         if np.size(self.w_init) == 2:
-            self.w_init = np.asarray([float(s) for s in w_init])
+            self.w_init = np.asarray([float(s) for s in self.w_init])
         else:
             self.w_init = float(self.w_init)
             
