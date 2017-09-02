@@ -44,12 +44,15 @@ class visualizer:
             # plug in value into func and derivative
             grad_eval = self.grad(w)
             hess_eval = self.hess(w)
+            
+            # reshape for numpy linalg functionality
+            hess_eval.shape = (int((np.size(hess_eval))**(0.5)),int((np.size(hess_eval))**(0.5)))
 
             # solve linear system for weights
             w = w - np.dot(np.linalg.pinv(hess_eval + self.beta*np.eye(np.size(w))),grad_eval)
                                 
             # record
-            self.w_hist.append(w)
+            self.w_hist.append(w[0][0])
 
     # animate the method
     def animate_it(self,**kwargs):
@@ -59,11 +62,14 @@ class visualizer:
             
         # take in user defined maximum number of iterations
         if 'max_its' in kwargs:
-            self.max_its = float(kwargs['max_its'])
+            self.max_its = int(kwargs['max_its'])
             
         wmax = 3
         if 'wmax' in kwargs:
             wmax = kwargs['wmax']
+        wmin = -wmax
+        if 'wmin' in kwargs:
+            wmin = kwargs['wmin']
             
         # initialize figure
         fig = plt.figure(figsize = (10,5))
@@ -78,7 +84,7 @@ class visualizer:
         ax = plt.subplot(gs[1],aspect = 'equal')
         
         # generate function for plotting on each slide
-        w_plot = np.linspace(-wmax,wmax,1000)
+        w_plot = np.linspace(wmin,wmax,1000)
         g_plot = self.g(w_plot)
         g_range = max(g_plot) - min(g_plot)
         ggap = g_range*0.1
@@ -192,7 +198,7 @@ class visualizer:
                     ax.scatter(w_zero,g_zero,s = 100,c = 'm',edgecolor = 'k',linewidth = 0.7, marker = 'X',zorder = 3)            # plot point of tangency
             
             # fix viewing limits on panel
-            ax.set_xlim([-wmax,wmax])
+            ax.set_xlim([wmin,wmax])
             ax.set_ylim([min(-0.3,min(g_plot) - ggap),max(max(g_plot) + ggap,0.3)])
             
             # add horizontal axis
@@ -203,7 +209,7 @@ class visualizer:
             ax.set_ylabel('$g(w)$',fontsize = 12,rotation = 0,labelpad = 12)
             
             # set tickmarks
-            ax.set_xticks(-np.arange(-round(wmax), round(wmax) + 1, 1.0))
+            ax.set_xticks(np.arange(round(wmin), round(wmax) + 1, 1.0))
             ax.set_yticks(np.arange(round(min(g_plot) - ggap), round(max(g_plot) + ggap) + 1, 1.0))
 
             return artist,
