@@ -9,6 +9,9 @@ import matplotlib.animation as animation
 from autograd import grad as compute_grad   # The only autograd function you may ever need
 import autograd.numpy as np
 import math
+from matplotlib import gridspec
+from IPython.display import clear_output
+import time
 
 # simple first order taylor series visualizer
 class visualizer:
@@ -31,12 +34,12 @@ class visualizer:
         self.hess = compute_grad(self.grad)         # second derivative of input function
         self.w_init = float( -2.3)                  # initial point
         self.w_hist = []
-        self.beta_range = np.linspace(0,2,20)       # range of regularization parameter to try
+        self.epsilon_range = np.linspace(0,2,20)       # range of regularization parameter to try
         self.max_its = 10
         
     ######## newton's method ########
     # run newton's method
-    def run_newtons_method(self,beta):
+    def run_newtons_method(self,epsilon):
         w_val = self.w_init
         self.w_hist = []
         self.w_hist.append(w_val)
@@ -52,7 +55,7 @@ class visualizer:
             hess_val = float(self.hess(w_val))
 
             # take newtons step
-            curvature = hess_val + beta
+            curvature = hess_val + epsilon
             if abs(curvature) > 10**-2:
                 w_val = w_val - grad_val/curvature
             
@@ -60,20 +63,20 @@ class visualizer:
             self.w_hist.append(w_val)
 
     # animate the method
-    def draw_it_newtons(self,**args):
-        # let the user define the range of regularization parameters to try as well as the initial point of all runs
-        if 'beta_range' in args:
-            self.beta_range = args['beta_range']
-        if 'w_init' in args:
-            self.w_init = float(args['w_init'])
-        if 'max_its' in args:
-            self.max_its = float(args['max_its'])
+    def animate_it(self,epsilon_range,**kwargs):
+        self.epsilon_range = epsilon_range
+        if 'w_init' in kwargs:
+            self.w_init = float(kwargs['w_init'])
+        if 'max_its' in kwargs:
+            self.max_its = float(kwargs['max_its'])
     
         # initialize figure
-        fig = plt.figure(figsize = (15,7))
+        fig = plt.figure(figsize = (10,4))
         artist = fig
-        ax1 = fig.add_subplot(121)
-        ax2 = fig.add_subplot(122)
+        
+        gs = gridspec.GridSpec(1, 2, width_ratios=[2,1]) 
+        ax1 = plt.subplot(gs[0],aspect = 'equal');
+        ax2 = plt.subplot(gs[1]);
 
         # generate function for plotting on each slide
         w_plot = np.linspace(-3,3,200)
@@ -100,11 +103,11 @@ class visualizer:
 
             # plot function alone first along with initial point
             if k > 0:
-                beta = self.beta_range[k-1]
+                epsilon = self.epsilon_range[k-1]
                 
                 # run gradient descent method
                 self.w_hist = []
-                self.run_newtons_method(beta = beta)
+                self.run_newtons_method(epsilon)
         
                 # colors for points
                 s = np.linspace(0,1,len(self.w_hist[:round(len(self.w_hist)/2)]))
@@ -135,7 +138,7 @@ class visualizer:
 
                     # compute second order approximation
                     wrange = np.linspace(w_val - 3,w_val + 3, 100)
-                    h = g_val + g_grad_val*(wrange - w_val) + 0.5*(g_hess_val + beta)*(wrange - w_val)**2 
+                    h = g_val + g_grad_val*(wrange - w_val) + 0.5*(g_hess_val + epsilon)*(wrange - w_val)**2 
 
                     # plot all
                     ax1.plot(wrange,h,color = self.colorspec[j],linewidth = 2,alpha = 0.4,zorder = 1)      # plot approx
@@ -145,8 +148,12 @@ class visualizer:
                     
                     # clean up second axis
                     ax2.set_xlabel('iteration',fontsize = 13)
-                    ax2.set_ylabel('cost function value',fontsize = 13)
+                    ax2.set_ylabel(r'$g(w)$',fontsize = 13,labelpad = 20)
                     ax2.set_xticks(np.arange(len(self.w_hist)))
+                    
+                    title = r'$\epsilon = $' + r'{:.2f}'.format(epsilon)
+                    ax1.set_title(title,fontsize = 15)
+            
                     
                     # plot connector between points for visualization purposes
                     if j > 0:
@@ -155,6 +162,9 @@ class visualizer:
                         g_old = self.g(w_old)
                         g_new = self.g(w_new)
                         ax2.plot([j-1,j],[g_old,g_new],color = self.colorspec[j],linewidth = 2,alpha = 0.4,zorder = 1)      # plot approx
+            else:
+                title = ' '
+                ax1.set_title(title,fontsize = 15)
 
             # fix viewing limits
             ax1.set_xlim([-3,3])
@@ -165,6 +175,6 @@ class visualizer:
 
             return artist,
 
-        anim = animation.FuncAnimation(fig, animate,frames=len(self.beta_range)+1, interval=len(self.beta_range)+1, blit=True)
+        anim = animation.FuncAnimation(fig, animate,frames=len(self.epsilon_range)+1, interval=len(self.epsilon_range)+1, blit=True)
 
         return(anim)
