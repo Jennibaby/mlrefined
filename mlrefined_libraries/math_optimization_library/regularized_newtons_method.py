@@ -69,23 +69,28 @@ class visualizer:
             self.w_init = float(kwargs['w_init'])
         if 'max_its' in kwargs:
             self.max_its = float(kwargs['max_its'])
+        wmax = 3
+        if 'wmax' in kwargs:
+            wmax = kwargs['wmax']
     
         # initialize figure
         fig = plt.figure(figsize = (10,4))
         artist = fig
         
         gs = gridspec.GridSpec(1, 2, width_ratios=[2,1]) 
-        ax1 = plt.subplot(gs[0],aspect = 'equal');
-        ax2 = plt.subplot(gs[1]);
+        ax1 = plt.subplot(gs[0],aspect = 'auto');
+        ax2 = plt.subplot(gs[1],sharey=ax1);
 
         # generate function for plotting on each slide
-        w_plot = np.linspace(-3,3,200)
+        w_plot = np.linspace(-wmax,wmax,1000)
         g_plot = self.g(w_plot)
         g_range = max(g_plot) - min(g_plot)
         ggap = g_range*0.5
         w_vals = np.linspace(-2.5,2.5,50)
  
         # animation sub-function
+        print ('starting animation rendering...')
+        num_frames = len(self.epsilon_range) + 1
         def animate(k):
             # clear the previous panel for next slide
             ax1.cla()
@@ -94,6 +99,14 @@ class visualizer:
             # plot function 
             ax1.plot(w_plot,g_plot,color = 'k',zorder = 0)               # plot function
             
+            # print rendering update
+            if np.mod(k+1,25) == 0:
+                print ('rendering animation frame ' + str(k+1) + ' of ' + str(num_frames))
+            if k == num_frames - 1:
+                print ('animation rendering complete!')
+                time.sleep(1.5)
+                clear_output()
+                
             # plot initial point and evaluation
             if k == 0:
                 w_val = self.w_init
@@ -146,15 +159,10 @@ class visualizer:
                     ### plot all on cost function decrease plot
                     ax2.scatter(j,g_val,s = 90,c = self.colorspec[j],edgecolor = 'k',linewidth = 0.7,zorder = 3)            # plot point of tangency
                     
-                    # clean up second axis
-                    ax2.set_xlabel('iteration',fontsize = 13)
-                    ax2.set_ylabel(r'$g(w)$',fontsize = 13,labelpad = 20)
-                    ax2.set_xticks(np.arange(len(self.w_hist)))
-                    
+                    # place title
                     title = r'$\epsilon = $' + r'{:.2f}'.format(epsilon)
                     ax1.set_title(title,fontsize = 15)
             
-                    
                     # plot connector between points for visualization purposes
                     if j > 0:
                         w_old = self.w_hist[j-1]
@@ -163,18 +171,30 @@ class visualizer:
                         g_new = self.g(w_new)
                         ax2.plot([j-1,j],[g_old,g_new],color = self.colorspec[j],linewidth = 2,alpha = 0.4,zorder = 1)      # plot approx
             else:
-                title = ' '
+                title = r'$\,\,\,$'
                 ax1.set_title(title,fontsize = 15)
 
+            # clean up axis in each panel
+            ax2.set_xlabel('iteration',fontsize = 13)
+            ax2.set_ylabel(r'$g(w)$',fontsize = 13,labelpad = 15,rotation = 0)
+            ax1.set_xlabel(r'$w$',fontsize = 13)
+            ax1.set_ylabel(r'$g(w)$',fontsize = 13,labelpad = 15,rotation = 0)
+                    
             # fix viewing limits
-            ax1.set_xlim([-3,3])
+            ax1.set_xlim([-wmax,wmax])
             ax1.set_ylim([min(g_plot) - ggap,max(g_plot) + ggap])
             
-            # draw axes
-            ax1.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
-
+            ax2.set_xlim([-0.5,self.max_its + 0.5])
+            ax2.set_ylim([min(g_plot) - ggap,max(g_plot) + ggap])
+            
+            # set tickmarks
+            ax1.set_xticks(np.arange(-round(wmax), round(wmax) + 1, 1.0))
+            ax1.set_yticks(np.arange(round(min(g_plot) - ggap), round(max(g_plot) + ggap) + 1, 1.0))
+           
+            ax2.set_xticks(np.arange(0,self.max_its + 1, 1.0))
+                        
             return artist,
 
-        anim = animation.FuncAnimation(fig, animate,frames=len(self.epsilon_range)+1, interval=len(self.epsilon_range)+1, blit=True)
+        anim = animation.FuncAnimation(fig, animate,frames=num_frames, interval=num_frames, blit=True)
 
         return(anim)
