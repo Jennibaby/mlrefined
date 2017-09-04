@@ -44,11 +44,9 @@ class visualizer:
         self.w_hist = []
         self.w_hist.append(w_val)
         w_old = np.inf
-        j = 0
-        while (w_old - w_val)**2 > 10**-5 and j < self.max_its:
+        for j in range(int(self.max_its)):
             # update old w and index
             w_old = w_val
-            j+=1
             
             # plug in value into func and derivative
             grad_val = float(self.grad(w_val))
@@ -56,7 +54,7 @@ class visualizer:
 
             # take newtons step
             curvature = hess_val + epsilon
-            if abs(curvature) > 10**-2:
+            if abs(curvature) > 10**-6:
                 w_val = w_val - grad_val/curvature
             
             # record
