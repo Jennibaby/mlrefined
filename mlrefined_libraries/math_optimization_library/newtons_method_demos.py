@@ -146,6 +146,8 @@ class visualizer:
             if k > 0 and k < len(self.w_hist) + 1:          
                 # grab historical weight, compute function and derivative evaluations    
                 w_eval = self.w_hist[k-1]
+                if type(w_eval) != float:
+                    w_eval = float(w_eval[0][0])
 
                 # plug in value into func and derivative
                 g_eval = self.g(w_eval)
