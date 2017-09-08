@@ -10,7 +10,7 @@ from IPython.display import clear_output
 # import autograd functionality
 from autograd import grad as compute_grad   # The only autograd function you may ever need
 import autograd.numpy as np
-from autograd import hessian
+from autograd import hessian as compute_hess
 import math
 import time
 from matplotlib import gridspec
@@ -25,6 +25,7 @@ class visualizer:
         self.x = data[:,0]
         self.y = data[:,1]
         
+    def center_data(self):
         # center data
         self.x = self.x - np.mean(self.x)
         self.y = self.y - np.mean(self.y)
@@ -55,7 +56,13 @@ class visualizer:
         if self.algo == 'gradient_descent':
             self.w_hist = []
             self.gradient_descent()
-            
+        if self.algo == 'newtons_method':
+            self.hess = compute_hess(self.g)           # hessian of input function
+            self.beta = 0
+            if 'beta' in kwargs:
+                self.beta = kwargs['beta']
+            self.w_hist = []
+            self.newtons_method()            
     
     ######## linear regression functions ########    
     def least_squares(self,w):
@@ -101,7 +108,25 @@ class visualizer:
             alpha = t*alpha
         return alpha
             
+    #### run newton's method ####
+    def newtons_method(self):
+        w = self.w_init
+        self.w_hist = []
+        self.w_hist.append(w)
+        for k in range(self.max_its):
+            # plug in value into func and derivative
+            grad_eval = self.grad(w)
+            hess_eval = self.hess(w)
             
+            # reshape for numpy linalg functionality
+            hess_eval.shape = (int((np.size(hess_eval))**(0.5)),int((np.size(hess_eval))**(0.5)))
+
+            # solve linear system for weights
+            w = w - np.dot(np.linalg.pinv(hess_eval + self.beta*np.eye(np.size(w))),grad_eval)
+                                
+            # record
+            self.w_hist.append(w)
+    
     ######## animation function ########
     # animate gradient descent or newton's method
     def animate_it(self,**kwargs):         
@@ -177,9 +202,9 @@ class visualizer:
             ###### make right panel - plot contour and steps ######
             if k == 0:
                 ax2.scatter(w[0],w[1],s = 90,facecolor = color,edgecolor = 'k',linewidth = 0.5, zorder = 3)
-            elif k > 0 and k < num_frames - 1:
+            if k > 0 and k < num_frames:
                 self.plot_pts_on_contour(ax2,k,color)
-            else:
+            if k == num_frames -1:
                 ax2.scatter(w[0],w[1],s = 90,facecolor = color,edgecolor = 'k',linewidth = 0.5, zorder = 3)
                
             return artist,
@@ -207,19 +232,19 @@ class visualizer:
         # set plotting limits
         xmax = max(self.x)
         xmin = min(self.x)
-        xgap = (xmax - xmin)*0.1
+        xgap = (xmax - xmin)*0.2
         xmin -= xgap
         xmax += xgap
         x_fit = np.linspace(xmin,xmax,500)
         
         ymax = max(self.y)
         ymin = min(self.y)
-        ygap = (ymax - ymin)*0.1
+        ygap = (ymax - ymin)*0.2
         ymin -= ygap
         ymax += ygap    
         
         # initialize points
-        ax.scatter(self.x,self.y,color = 'k', edgecolor = 'w',linewidth = 1,s = 60)
+        ax.scatter(self.x,self.y,color = 'k', edgecolor = 'w',linewidth = 0.9,s = 40)
 
         # clean up panel
         ax.set_xlim([xmin,xmax])
@@ -228,7 +253,7 @@ class visualizer:
         # label axes
         ax.set_xlabel(r'$x$', fontsize = 12)
         ax.set_ylabel(r'$y$', rotation = 0,fontsize = 12)
-        ax.set_title('centered data', fontsize = 13)
+        ax.set_title('data', fontsize = 13)
         
     # plot points on contour
     def plot_pts_on_contour(self,ax,j,color):
