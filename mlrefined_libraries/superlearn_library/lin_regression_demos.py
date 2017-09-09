@@ -101,7 +101,7 @@ class visualizer:
     def backtracking(self,w,grad_eval):
         # set input parameters
         alpha = 1
-        t = 0.99
+        t = 0.8
         
         # compute initial function and gradient values
         func_eval = self.g(w)
@@ -155,10 +155,10 @@ class visualizer:
         self.colorspec = np.concatenate((self.colorspec,np.zeros((len(s),1))),1)
         
         # seed left panel plotting range
-        xmax = 3
-        if 'xmax' in kwargs:
-            wmax = kwargs['xmax']
-        r = np.linspace(-xmax,xmax,200)
+        viewmax = 3
+        if 'viewmax' in kwargs:
+            viewmax = kwargs['viewmax']
+        r = np.linspace(-viewmax,viewmax,200)
 
         # create grid from plotting range
         x1_vals,x2_vals = np.meshgrid(r,r)
@@ -205,7 +205,7 @@ class visualizer:
             y_fit = w[0] + w[1]*x1_vals + w[2]*x2_vals
 
             # plot cost surface
-            ax1.plot_surface(x1_vals,x2_vals,y_fit,alpha = 0.1,color = color,rstride=25, cstride=25,linewidth=1,edgecolor = 'k',zorder = 2)  
+            ax1.plot_surface(x1_vals,x2_vals,y_fit,alpha = 0.1,color = color,rstride=25, cstride=25,linewidth=0.25,edgecolor = 'k',zorder = 2)  
             
             # scatter data
             self.scatter_pts(ax1)
@@ -276,24 +276,24 @@ class visualizer:
         self.colorspec = np.concatenate((self.colorspec,np.zeros((len(s),1))),1)
         
         # seed left panel plotting range
-        xmin = min(self.x)
-        xmax = max(self.x)
+        xmin = copy.deepcopy(min(self.x))
+        xmax = copy.deepcopy(max(self.x))
         xgap = (xmax - xmin)*0.1
         xmin-=xgap
         xmax+=xgap
         x_fit = np.linspace(xmin,xmax,300)
         
         # seed right panel contour plot
-        wmax = 3
-        if 'wmax' in kwargs:
-            wmax = kwargs['wmax']
+        viewmax = 3
+        if 'viewmax' in kwargs:
+            viewmax = kwargs['viewmax']
         view = [20,100]
         if 'view' in kwargs:
             view = kwargs['view']
         num_contours = 15
         if 'num_contours' in kwargs:
             num_contours = kwargs['num_contours']        
-        self.contour_plot(ax2,wmax,num_contours)
+        self.contour_plot(ax2,viewmax,num_contours)
         
         # start animation
         num_frames = len(self.w_hist)
@@ -377,7 +377,7 @@ class visualizer:
             # clean up panel
             ax.set_xlim([xmin,xmax])
             ax.set_ylim([ymin,ymax])
-
+            
             # label axes
             ax.set_xlabel(r'$x$', fontsize = 12)
             ax.set_ylabel(r'$y$', rotation = 0,fontsize = 12)
@@ -387,13 +387,13 @@ class visualizer:
             # set plotting limits
             xmax1 = copy.deepcopy(max(self.x[:,0]))
             xmin1 = copy.deepcopy(min(self.x[:,0]))
-            xgap1 = (xmax1 - xmin1)*0.3
+            xgap1 = (xmax1 - xmin1)*0.35
             xmin1 -= xgap1
             xmax1 += xgap1
             
             xmax2 = copy.deepcopy(max(self.x[:,0]))
             xmin2 = copy.deepcopy(min(self.x[:,0]))
-            xgap2 = (xmax2 - xmin2)*0.3
+            xgap2 = (xmax2 - xmin2)*0.35
             xmin2 -= xgap2
             xmax2 += xgap2
             
@@ -410,10 +410,13 @@ class visualizer:
             ax.set_xlim([xmin1,xmax1])
             ax.set_ylim([xmin2,xmax2])
             ax.set_zlim([ymin,ymax])
+            
+            ax.set_xticks(np.arange(round(xmin1) +1, round(xmax1), 1.0))
+            ax.set_yticks(np.arange(round(xmin2) +1, round(xmax2), 1.0))
 
             # label axes
-            ax.set_xlabel(r'$x_1$', fontsize = 12)
-            ax.set_ylabel(r'$x_2$', rotation = 0,fontsize = 12)
+            ax.set_xlabel(r'$x_1$', fontsize = 12,labelpad = 5)
+            ax.set_ylabel(r'$x_2$', rotation = 0,fontsize = 12,labelpad = 5)
             ax.set_zlabel(r'$y$', rotation = 0,fontsize = 12,labelpad = -3)
 
             # clean up panel
@@ -451,9 +454,9 @@ class visualizer:
         ax2 = plt.subplot(gs[1],projection='3d'); 
         
         # pull user-defined args
-        wmax = 3
-        if 'wmax' in kwargs:
-            wmax = kwargs['wmax']
+        viewmax = 3
+        if 'viewmax' in kwargs:
+            viewmax = kwargs['viewmax']
         view = [20,100]
         if 'view' in kwargs:
             view = kwargs['view']
@@ -462,10 +465,10 @@ class visualizer:
             num_contours = kwargs['num_contours']
         
         # make contour plot in left panel
-        self.contour_plot(ax1,wmax,num_contours)
+        self.contour_plot(ax1,viewmax,num_contours)
         
         # make contour plot in right panel
-        self.surface_plot(ax2,wmax,view)
+        self.surface_plot(ax2,viewmax,view)
         
         plt.show()
         
@@ -479,7 +482,11 @@ class visualizer:
         w1_vals,w2_vals = np.meshgrid(r,r)
         w1_vals.shape = (len(r)**2,1)
         w2_vals.shape = (len(r)**2,1)
-        g_vals = self.least_squares([w1_vals,w2_vals])
+        w_ = np.concatenate((w1_vals,w2_vals),axis = 1)
+        g_vals = []
+        for i in range(len(r)**2):
+            g_vals.append(self.least_squares(w_[i,:]))
+        g_vals = np.asarray(g_vals)
 
         # reshape and plot the surface, as well as where the zero-plane is
         w1_vals.shape = (np.size(r),np.size(r))
