@@ -85,6 +85,32 @@ class visualizer:
             cost +=(np.sign(w[0] + np.dot(w[1:].T,x_p)) - y_p)**2
         return cost
     
+    # run gradient descent
+    def gradient_descent(self):
+        w = self.w_init
+        self.w_hist = []
+        self.w_hist.append(w)
+        for k in range(self.max_its):   
+            # plug in value into func and derivative
+            grad_eval = self.grad(w)
+            grad_eval.shape = (len(w),1)
+            
+            grad_norm = np.linalg.norm(grad_eval)
+            if grad_norm == 0:
+                grad_norm += 10**-6*np.sign(2*np.random.rand(1) - 1)
+            grad_eval /= grad_norm
+            
+            # decide on alpha
+            alpha = self.alpha
+            if self.alpha == 'backtracking':
+                alpha = self.backtracking(w,grad_val)
+            
+            # take newtons step
+            w = w - alpha*grad_eval
+            
+            # record
+            self.w_hist.append(w)     
+    
     #### run newton's method ####
     def newtons_method(self):
         w = self.w_init
