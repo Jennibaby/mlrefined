@@ -19,7 +19,7 @@ import copy
 
 class visualizer:
     '''
-    Visualize logistic regression in 2 and 3 dimensions.  For single input cases (2 dimensions) the path of gradient descent on the cost function can be animated.
+    Visualize linear regression applied to a 2-class dataset.
     '''
     #### initialize ####
     def __init__(self,data):
