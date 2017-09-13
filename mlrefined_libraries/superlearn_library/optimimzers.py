@@ -64,12 +64,12 @@ class MyOptimizers:
             # alpha = alpha
             
             # use backtracking line search?
-            #if steplength_rule == 'backtracking':
-            #    alpha = self.backtracking(w,grad_eval)
+            if steplength_rule == 'backtracking':
+                alpha = self.backtracking(w,grad_eval)
                 
             # use a pre-set diminishing steplength parameter?
-           # if steplength_rule == 'diminishing':
-            #    alpha = 1/(float(k + 1))
+            if steplength_rule == 'diminishing':
+                alpha = 1/(float(k + 1))
             
             ### take gradient descent step ###
             w = w - alpha*grad_eval

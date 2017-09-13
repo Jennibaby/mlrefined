@@ -36,17 +36,27 @@ class Visualizer:
     def counting_cost(self,w):
         cost = 0
         for p in range(0,len(self.y)):
-            x_p = self.x[p,:]
+            x_p = self.x[p]
             y_p = self.y[p]
             a_p = w[0] + sum([a*b for a,b in zip(w[1:],x_p)])
             cost += (np.sign(a_p) - y_p)**2
         return 0.25*cost
+    
+    # the perceptron relu cost
+    def relu(self,w):
+        cost = 0
+        for p in range(0,len(self.y)):
+            x_p = self.x[p]
+            y_p = self.y[p]
+            a_p = w[0] + sum([a*b for a,b in zip(w[1:],x_p)])
+            cost += np.maximum(0,-y_p*a_p)
+        return cost
 
     # the convex softmax cost function
     def softmax(self,w):
         cost = 0
         for p in range(0,len(self.y)):
-            x_p = self.x[p,:]
+            x_p = self.x[p]
             y_p = self.y[p]
             a_p = w[0] + sum([a*b for a,b in zip(w[1:],x_p)])
             cost += np.log(1 + np.exp(-y_p*a_p))
@@ -64,6 +74,9 @@ class Visualizer:
         alpha = 10**-3
         if 'alpha' in kwargs:
             alpha = kwargs['alpha']  
+        steplength_rule = 'none'
+        if 'steplength_rule' in kwargs:
+            steplength_rule = kwargs['steplength_rule']
         version = 'unnormalized'
         if 'version' in kwargs:
             version = kwargs['version'] 
@@ -75,16 +88,18 @@ class Visualizer:
         g = self.softmax
         if cost == 'softmax':
             g = self.softmax
+        if cost == 'relu':
+            g = self.relu
         g_count = self.counting_cost
-        
+
         big_w_hist = []
         for j in range(num_runs):
             if algo == 'gradient_descent':# run gradient descent
-                w_hist = self.opt.gradient_descent(g = g,w = np.random.randn(np.shape(self.x)[1],1),version = version,max_its = max_its, alpha = alpha)
+                w_hist = self.opt.gradient_descent(g = g,w = np.random.randn(np.shape(self.x)[1]+1,1),version = version,max_its = max_its, alpha = alpha,steplength_rule = steplength_rule)
             elif algo == 'newtons_method':
                 w_hist = self.opt.newtons_method(g = g,w = np.random.randn(np.shape(self.x)[1]+1,1),max_its = max_its)
             big_w_hist.append(w_hist)
-               
+            
         ##### setup figure to plot #####
         # initialize figure
         fig = plt.figure(figsize = (8,4))
