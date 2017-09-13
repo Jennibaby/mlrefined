@@ -16,7 +16,7 @@ import time
 from matplotlib import gridspec
 import copy
 
-class visualizer:
+class Visualizer:
     '''
     Visualize linear regression in 2 and 3 dimensions.  For single input cases (2 dimensions) the path of gradient descent on the cost function can be animated.
     '''
@@ -31,40 +31,6 @@ class visualizer:
         self.x = self.x - np.mean(self.x)
         self.y = self.y - np.mean(self.y)
         
-    def run_algo(self,algo,**kwargs):
-        # Get function and compute gradient
-        self.g = self.least_squares
-        self.grad = compute_grad(self.g)
-        
-        # choose algorithm
-        self.algo = algo
-        if self.algo == 'gradient_descent':
-            self.alpha = 10**-3
-            if 'alpha' in kwargs:
-                self.alpha = kwargs['alpha']
-        
-        self.max_its = 10
-        if 'max_its' in kwargs:
-            self.max_its = kwargs['max_its']
-            
-        self.w_init = np.random.randn(2)
-        if 'w_init' in kwargs:
-            self.w_init = kwargs['w_init']
-            self.w_init = np.asarray([float(s) for s in self.w_init])
-            self.w_init.shape = (len(self.w_init),1)
-            
-        # run algorithm of choice
-        if self.algo == 'gradient_descent':
-            self.w_hist = []
-            self.gradient_descent()
-        if self.algo == 'newtons_method':
-            self.hess = compute_hess(self.g)           # hessian of input function
-            self.beta = 0
-            if 'beta' in kwargs:
-                self.beta = kwargs['beta']
-            self.w_hist = []
-            self.newtons_method()            
-    
     ######## linear regression functions ########    
     def least_squares(self,w):
         cost = 0
@@ -74,66 +40,12 @@ class visualizer:
             y_p = self.y[p]
             cost +=(w[0] + np.dot(w[1:].T,x_p) - y_p)**2
         return cost
-                
-    ######## gradient descent ########
-    # run gradient descent
-    def gradient_descent(self):
-        w = self.w_init
-        self.w_hist = []
-        self.w_hist.append(w)
-        for k in range(self.max_its):   
-            # plug in value into func and derivative
-            grad_val = self.grad(w)
-            grad_val.shape = (len(w),1)
-            
-            # decide on alpha
-            alpha = self.alpha
-            if self.alpha == 'backtracking':
-                alpha = self.backtracking(w,grad_val)
-            
-            # take newtons step
-            w = w - alpha*grad_val
-            
-            # record
-            self.w_hist.append(w)     
-
-    # backtracking linesearch module
-    def backtracking(self,w,grad_eval):
-        # set input parameters
-        alpha = 1
-        t = 0.8
-        
-        # compute initial function and gradient values
-        func_eval = self.g(w)
-        grad_norm = np.linalg.norm(grad_eval)**2
-        
-        # loop over and tune steplength
-        while self.g(w - alpha*grad_eval) > func_eval - alpha*0.5*grad_norm:
-            alpha = t*alpha
-        return alpha
-            
-    #### run newton's method ####
-    def newtons_method(self):
-        w = self.w_init
-        self.w_hist = []
-        self.w_hist.append(w)
-        for k in range(self.max_its):
-            # plug in value into func and derivative
-            grad_eval = self.grad(w)
-            hess_eval = self.hess(w)
-            
-            # reshape for numpy linalg functionality
-            hess_eval.shape = (int((np.size(hess_eval))**(0.5)),int((np.size(hess_eval))**(0.5)))
-
-            # solve linear system for weights
-            w = w - np.dot(np.linalg.pinv(hess_eval + self.beta*np.eye(np.size(w))),grad_eval)
-                                
-            # record
-            self.w_hist.append(w)
     
      ######## 3d animation function ########
     # animate gradient descent or newton's method
-    def animate_it_3d(self,**kwargs):         
+    def animate_it_3d(self,w_hist,**kwargs):         
+        self.w_hist = w_hist 
+        
         ##### setup figure to plot #####
         # initialize figure
         fig = plt.figure(figsize = (8,3))
@@ -214,14 +126,14 @@ class visualizer:
             # plot connector between points for visualization purposes
             if k == 0:
                 w_new = self.w_hist[k]
-                g_new = self.g(w_new)[0][0]
+                g_new = self.least_squares(w_new)[0][0]
                 ax2.scatter(k,g_new,s = 0.1,color = 'w',linewidth = 2.5,alpha = 0,zorder = 1)      # plot approx
                 
             if k > 0:
                 w_old = self.w_hist[k-1]
                 w_new = self.w_hist[k]
-                g_old = self.g(w_old)[0][0]
-                g_new = self.g(w_new)[0][0]
+                g_old = self.least_squares(w_old)[0][0]
+                g_new = self.least_squares(w_new)[0][0]
      
                 ax2.plot([k-1,k],[g_old,g_new],color = color,linewidth = 2.5,alpha = 1,zorder = 2)      # plot approx
                 ax2.plot([k-1,k],[g_old,g_new],color = 'k',linewidth = 3.5,alpha = 1,zorder = 1)      # plot approx
@@ -254,7 +166,9 @@ class visualizer:
     
     ######## 2d animation function ########
     # animate gradient descent or newton's method
-    def animate_it_2d(self,**kwargs):         
+    def animate_it_2d(self,w_hist,**kwargs):       
+        self.w_hist = w_hist
+        
         ##### setup figure to plot #####
         # initialize figure
         fig = plt.figure(figsize = (8,3))
@@ -437,8 +351,8 @@ class visualizer:
         # plot connector between points for visualization purposes
         w_old = self.w_hist[j-1]
         w_new = self.w_hist[j]
-        g_old = self.g(w_old)
-        g_new = self.g(w_new)
+        g_old = self.least_squares(w_old)
+        g_new = self.least_squares(w_new)
      
         ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = color,linewidth = 3,alpha = 1,zorder = 2)      # plot approx
         ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = 'k',linewidth = 3 + 1,alpha = 1,zorder = 1)      # plot approx
