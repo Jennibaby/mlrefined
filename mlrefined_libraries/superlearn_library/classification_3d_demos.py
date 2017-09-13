@@ -28,18 +28,35 @@ class Visualizer:
         self.y = data[:,-1]
         
         # colors for viewing classification data 'from above'
-        self.colors = ['salmon','cornflowerblue','lime','bisque','mediumaquamarine','b','m','g']
+        self.colors = ['cornflowerblue','salmon','lime','bisque','mediumaquamarine','b','m','g']
 
     def center_data(self):
         # center data
         self.x = self.x - np.mean(self.x)
         self.y = self.y - np.mean(self.y)
+        
+    # the counting cost function - for determining best weights from input weight history
+    def counting_cost(self,w):
+        cost = 0
+        for p in range(0,len(self.y)):
+            x_p = self.x[p]
+            y_p = self.y[p]
+            a_p = w[0] + sum([a*b for a,b in zip(w[1:],x_p)])
+            cost += (np.sign(a_p) - y_p)**2
+        return 0.25*cost
                     
      ######## 3d static and animation functions ########
     # produce static image of gradient descent or newton's method run
-    def static_fig(self,w_hist,**kwargs):         
-        self.w_hist = w_hist
-        
+    def static_fig(self,w_hist,**kwargs):      
+        # determine best weights based on number of misclassifications
+        g_count = []
+        for j in range(len(w_hist)):
+            w = w_hist[j]
+            count = self.counting_cost(w)
+            g_count.append(count)
+        ind = np.argmin(g_count)
+        w = w_hist[ind]
+            
         # grab args
         zplane = 'on'
         if 'zplane' in kwargs:
@@ -58,7 +75,6 @@ class Visualizer:
         x1_vals.shape = (len(r)**2,1)
         x2_vals.shape = (len(r)**2,1)
         h = np.concatenate([x1_vals,x2_vals],axis = 1)
-        w = self.w_hist[-1]
         g_vals = np.tanh(w[0] + w[1]*x1_vals + w[2]*x2_vals)
         g_vals = np.asarray(g_vals)
 

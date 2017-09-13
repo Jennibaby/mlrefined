@@ -29,18 +29,36 @@ class Visualizer:
         self.g = g
         
         # colors for viewing classification data 'from above'
-        self.colors = ['salmon','cornflowerblue','lime','bisque','mediumaquamarine','b','m','g']
+        self.colors = ['cornflowerblue','salmon','lime','bisque','mediumaquamarine','b','m','g']
 
     def center_data(self):
         # center data
         self.x = self.x - np.mean(self.x)
         self.y = self.y - np.mean(self.y)
+        
+        
+    # the counting cost function - for determining best weights from input weight history
+    def counting_cost(self,w):
+        cost = 0
+        for p in range(0,len(self.y)):
+            x_p = self.x[p]
+            y_p = self.y[p]
+            a_p = w[0] + sum([a*b for a,b in zip(w[1:],x_p)])
+            cost += (np.sign(a_p) - y_p)**2
+        return 0.25*cost
     
     ######## 2d functions ########
     # animate gradient descent or newton's method
     def animate_run(self,w_hist,**kwargs):     
-        self.w_hist = w_hist
-
+        # determine best weights based on number of misclassifications
+        g_count = []
+        for j in range(len(w_hist)):
+            w = w_hist[j]
+            count = self.counting_cost(w)
+            g_count.append(count)
+        ind = np.argmin(g_count)[0]
+        w = w_hist[ind]
+        
         ##### setup figure to plot #####
         # initialize figure
         fig = plt.figure(figsize = (8,3))
@@ -101,7 +119,6 @@ class Visualizer:
             
             ###### make left panel - plot data and fit ######
             # initialize fit
-            w = self.w_hist[k]
             y_fit = np.tanh(w[0] + x_fit*w[1])
             
             # scatter data
@@ -126,8 +143,15 @@ class Visualizer:
     
     # produce static image of gradient descent or newton's method run
     def static_fig(self,w_hist,**kwargs):
-        self.w_hist = w_hist
-
+        # determine best weights based on number of misclassifications
+        g_count = []
+        for j in range(len(w_hist)):
+            w = w_hist[j]
+            count = self.counting_cost(w)
+            g_count.append(count)
+        ind = np.argmin(g_count)[0]
+        w = w_hist[ind]
+        
         ##### setup figure to plot #####
         # initialize figure
         fig = plt.figure(figsize = (8,3))
@@ -172,7 +196,6 @@ class Visualizer:
         
         ### make left panel - plot data and fit ###
         # initialize fit
-        w = self.w_hist[-1]
         y_fit = np.tanh(w[0] + x_fit*w[1])
             
         # scatter data
