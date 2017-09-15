@@ -56,11 +56,19 @@ class Visualizer:
             g_count.append(count)
         ind = np.argmin(g_count)
         w = w_hist[ind]
-            
+
         # grab args
         zplane = 'on'
         if 'zplane' in kwargs:
             zplane = kwargs['zplane']
+            
+        cost_plot = 'off'
+        if 'cost_plot' in kwargs:
+            cost_plot = kwargs['cost_plot']     
+         
+        g = 0
+        if 'g' in kwargs:
+            g = kwargs['g']             
                 
         ### plot all input data ###
         # generate input range for functions
@@ -70,12 +78,12 @@ class Visualizer:
         minx -= gapx
         maxx += gapx
 
-        r = np.linspace(minx,maxx,200)
+        r = np.linspace(minx,maxx,400)
         x1_vals,x2_vals = np.meshgrid(r,r)
         x1_vals.shape = (len(r)**2,1)
         x2_vals.shape = (len(r)**2,1)
         h = np.concatenate([x1_vals,x2_vals],axis = 1)
-        g_vals = np.tanh(w[0] + w[1]*x1_vals + w[2]*x2_vals)
+        g_vals = np.tanh( w[0] + w[1]*x1_vals + w[2]*x2_vals )
         g_vals = np.asarray(g_vals)
 
         # vals for cost surface
@@ -84,10 +92,20 @@ class Visualizer:
         g_vals.shape = (len(r),len(r))
 
         # create figure to plot
-        fig, axs = plt.subplots(1, 3, figsize=(9,4))
-        gs = gridspec.GridSpec(1, 2, width_ratios=[1,1]) 
+        num_panels = 2
+        fig_len = 9
+        widths = [1,1]
+        if cost_plot == 'on':
+            num_panels = 3
+            fig_len = 8
+            widths = [2,2,1]
+        fig, axs = plt.subplots(1, num_panels, figsize=(fig_len,4))
+        gs = gridspec.GridSpec(1, num_panels, width_ratios=widths) 
         ax1 = plt.subplot(gs[0],projection='3d'); 
         ax2 = plt.subplot(gs[1],aspect = 'equal'); 
+        ax3 = 0
+        if cost_plot == 'on':
+            ax3 = plt.subplot(gs[2],aspect = 0.5); 
 
         fig.subplots_adjust(left=0,right=1,bottom=0,top=1)   # remove whitespace around 3d figure
             
@@ -130,6 +148,22 @@ class Visualizer:
         else:
             ax2.contourf(x1_vals,x2_vals,g_vals,colors = self.colors[:],alpha = 0.1,levels = range(0,C+1))
      
+        # plot cost function value
+        if cost_plot == 'on':
+            # plot cost function history
+            g_hist = []
+            for j in range(len(w_hist)):
+                w = w_hist[j]
+                g_eval = g(w)
+                g_hist.append(g_eval)
+                
+            g_hist = np.asarray(g_hist).flatten()
+            
+            # plot cost function history
+            ax3.plot(np.arange(len(g_hist)),g_hist,linewidth = 2)
+            ax3.set_xlabel('iteration',fontsize = 13)
+            ax3.set_title('cost value',fontsize = 12)
+    
         plt.show()
        
     # set axis in left panel
@@ -167,35 +201,6 @@ class Visualizer:
         
     # scatter points
     def scatter_pts(self,ax):
-        if np.shape(self.x)[1] == 1:
-            # set plotting limits
-            xmax = copy.deepcopy(max(self.x))
-            xmin = copy.deepcopy(min(self.x))
-            xgap = (xmax - xmin)*0.2
-            xmin -= xgap
-            xmax += xgap
-            
-            ymax = max(self.y)
-            ymin = min(self.y)
-            ygap = (ymax - ymin)*0.2
-            ymin -= ygap
-            ymax += ygap    
-
-            # initialize points
-            ax.scatter(self.x,self.y,color = 'k', edgecolor = 'w',linewidth = 0.9,s = 40)
-
-            # clean up panel
-            ax.set_xlim([xmin,xmax])
-            ax.set_ylim([ymin,ymax])
-            
-            # label axes
-            ax.set_xlabel(r'$x$', fontsize = 12)
-            ax.set_ylabel(r'$y$', rotation = 0,fontsize = 12)
-            ax.set_title('data', fontsize = 13)
-            
-            ax.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
-            ax.axvline(x=0, color='k',zorder = 0,linewidth = 0.5)
-            
         if np.shape(self.x)[1] == 2:
             # set plotting limits
             xmax1 = copy.deepcopy(max(self.x[:,0]))
@@ -278,7 +283,7 @@ class Visualizer:
         for num in classes:
             inds = np.argwhere(self.y == num)
             inds = [s[0] for s in inds]
-            plt.scatter(self.data[inds,0],self.data[inds,1],color = self.colors[int(count)],linewidth = 1,marker = 'o',edgecolor = 'k',s = 50)
+            ax.scatter(self.data[inds,0],self.data[inds,1],color = self.colors[int(count)],linewidth = 1,marker = 'o',edgecolor = 'k',s = 50)
             count+=1
             
         # clean up panel
@@ -292,131 +297,3 @@ class Visualizer:
         ax.set_xlabel(r'$x_1$', fontsize = 12,labelpad = 0)
         ax.set_ylabel(r'$x_2$', rotation = 0,fontsize = 12,labelpad = 5)
             
-    # plot points on contour
-    def plot_pts_on_contour(self,ax,j,color):
-        # plot connector between points for visualization purposes
-        w_old = self.w_hist[j-1]
-        w_new = self.w_hist[j]
-        g_old = self.g(w_old)
-        g_new = self.g(w_new)
-     
-        ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = color,linewidth = 3,alpha = 1,zorder = 2)      # plot approx
-        ax.plot([w_old[0],w_new[0]],[w_old[1],w_new[1]],color = 'k',linewidth = 3 + 1,alpha = 1,zorder = 1)      # plot approx
-    
-    ###### function plotting functions #######
-    def plot_ls_cost(self,**kwargs):
-        # construct figure
-        fig, axs = plt.subplots(1, 2, figsize=(8,3))
-
-        # create subplot with 2 panels
-        gs = gridspec.GridSpec(1, 2, width_ratios=[1,1]) 
-        ax1 = plt.subplot(gs[0],aspect = 'equal'); 
-        ax2 = plt.subplot(gs[1],projection='3d'); 
-        
-        # pull user-defined args
-        viewmax = 3
-        if 'viewmax' in kwargs:
-            viewmax = kwargs['viewmax']
-        view = [20,100]
-        if 'view' in kwargs:
-            view = kwargs['view']
-        num_contours = 15
-        if 'num_contours' in kwargs:
-            num_contours = kwargs['num_contours']
-        
-        # make contour plot in left panel
-        self.contour_plot(ax1,viewmax,num_contours)
-        
-        # make contour plot in right panel
-        self.surface_plot(ax2,viewmax,view)
-        
-        plt.show()
-        
-    ### visualize the surface plot of cost function ###
-    def surface_plot(self,ax,wmax,view):
-        ##### Produce cost function surface #####
-        wmax += wmax*0.1
-        r = np.linspace(-wmax,wmax,200)
-
-        # create grid from plotting range
-        w1_vals,w2_vals = np.meshgrid(r,r)
-        w1_vals.shape = (len(r)**2,1)
-        w2_vals.shape = (len(r)**2,1)
-        w_ = np.concatenate((w1_vals,w2_vals),axis = 1)
-        g_vals = []
-        for i in range(len(r)**2):
-            g_vals.append(self.least_squares(w_[i,:]))
-        g_vals = np.asarray(g_vals)
-
-        # reshape and plot the surface, as well as where the zero-plane is
-        w1_vals.shape = (np.size(r),np.size(r))
-        w2_vals.shape = (np.size(r),np.size(r))
-        g_vals.shape = (np.size(r),np.size(r))
-        
-        # plot cost surface
-        ax.plot_surface(w1_vals,w2_vals,g_vals,alpha = 0.1,color = 'w',rstride=25, cstride=25,linewidth=1,edgecolor = 'k',zorder = 2)  
-        
-        # clean up panel
-        ax.xaxis.pane.fill = False
-        ax.yaxis.pane.fill = False
-        ax.zaxis.pane.fill = False
-
-        ax.xaxis.pane.set_edgecolor('white')
-        ax.yaxis.pane.set_edgecolor('white')
-        ax.zaxis.pane.set_edgecolor('white')
-
-        ax.xaxis._axinfo["grid"]['color'] =  (1,1,1,0)
-        ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
-        ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
-
-        ax.set_xlabel(r'$w_0$',fontsize = 12)
-        ax.set_ylabel(r'$w_1$',fontsize = 12,rotation = 0)
-        ax.set_title(r'$g\left(w_0,w_1\right)$',fontsize = 13)
-
-        ax.view_init(view[0],view[1])
-        
-    ### visualize contour plot of cost function ###
-    def contour_plot(self,ax,wmax,num_contours):
-        #### define input space for function and evaluate ####
-        w1 = np.linspace(-wmax,wmax,100)
-        w2 = np.linspace(-wmax,wmax,100)
-        w1_vals, w2_vals = np.meshgrid(w1,w2)
-        w1_vals.shape = (len(w1)**2,1)
-        w2_vals.shape = (len(w2)**2,1)
-        h = np.concatenate((w1_vals,w2_vals),axis=1)
-        func_vals = np.asarray([self.g(s) for s in h])
-        w1_vals.shape = (len(w1),len(w1))
-        w2_vals.shape = (len(w2),len(w2))
-        func_vals.shape = (len(w1),len(w2)) 
-
-        ### make contour right plot - as well as horizontal and vertical axes ###
-        # set level ridges
-        levelmin = min(func_vals.flatten())
-        levelmax = max(func_vals.flatten())
-        cutoff = 0.5
-        cutoff = (levelmax - levelmin)*cutoff
-        numper = 3
-        levels1 = np.linspace(cutoff,levelmax,numper)
-        num_contours -= numper
-
-        levels2 = np.linspace(levelmin,cutoff,min(num_contours,numper))
-        levels = np.unique(np.append(levels1,levels2))
-        num_contours -= numper
-        while num_contours > 0:
-            cutoff = levels[1]
-            levels2 = np.linspace(levelmin,cutoff,min(num_contours,numper))
-            levels = np.unique(np.append(levels2,levels))
-            num_contours -= numper
-
-        a = ax.contour(w1_vals, w2_vals, func_vals,levels = levels,colors = 'k')
-        ax.contourf(w1_vals, w2_vals, func_vals,levels = levels,cmap = 'Blues')
-                
-        # clean up panel
-        ax.set_xlabel('$w_0$',fontsize = 12)
-        ax.set_ylabel('$w_1$',fontsize = 12,rotation = 0)
-        ax.set_title(r'$g\left(w_0,w_1\right)$',fontsize = 13)
-
-        ax.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
-        ax.axvline(x=0, color='k',zorder = 0,linewidth = 0.5)
-        ax.set_xlim([-wmax,wmax])
-        ax.set_ylim([-wmax,wmax])

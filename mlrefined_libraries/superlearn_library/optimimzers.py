@@ -138,7 +138,7 @@ class MyOptimizers:
                     
             # eject from process if reaching singular system
             geval_new = self.g(w)
-            if geval_new > geval_old:
+            if k > 2 and geval_new > geval_old:
                 print ('singular system reached')
                 time.sleep(1.5)
                 clear_output()
@@ -147,7 +147,7 @@ class MyOptimizers:
                 geval_old = geval_new
                 
             # record current weights
-            w_hist.append(w)
+            w_hist.append([s[0] for s in w])
             
         print ('...optimization complete!')
         time.sleep(1.5)
