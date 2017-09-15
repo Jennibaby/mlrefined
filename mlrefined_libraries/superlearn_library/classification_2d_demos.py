@@ -50,14 +50,7 @@ class Visualizer:
     ######## 2d functions ########
     # animate gradient descent or newton's method
     def animate_run(self,w_hist,**kwargs):     
-        # determine best weights based on number of misclassifications
-        g_count = []
-        for j in range(len(w_hist)):
-            w = w_hist[j]
-            count = self.counting_cost(w)
-            g_count.append(count)
-        ind = np.argmin(g_count)[0]
-        w = w_hist[ind]
+        self.w_hist = w_hist
         
         ##### setup figure to plot #####
         # initialize figure
@@ -70,9 +63,9 @@ class Visualizer:
         ax2 = plt.subplot(gs[1]);
 
         # produce color scheme
-        s = np.linspace(0,1,len(self.w_hist[:round(len(self.w_hist)/2)]))
+        s = np.linspace(0,1,len(self.w_hist[:round(len(w_hist)/2)]))
         s.shape = (len(s),1)
-        t = np.ones(len(self.w_hist[round(len(self.w_hist)/2):]))
+        t = np.ones(len(self.w_hist[round(len(w_hist)/2):]))
         t.shape = (len(t),1)
         s = np.vstack((s,t))
         self.colorspec = []
@@ -119,6 +112,7 @@ class Visualizer:
             
             ###### make left panel - plot data and fit ######
             # initialize fit
+            w = self.w_hist[k]
             y_fit = np.tanh(w[0] + x_fit*w[1])
             
             # scatter data
