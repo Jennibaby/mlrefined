@@ -254,64 +254,55 @@ class Visualizer:
         maxx += gapx
         
         # initialize figure
-        fig = plt.figure(figsize = (8,4))
-        artist = fig
-        gs = gridspec.GridSpec(1, 2,width_ratios = [1,1]) 
+        fig = plt.figure(figsize = (9,5))
+        gs = gridspec.GridSpec(1, 3,width_ratios = [1,5,1],wspace=0.05, hspace=0.0) 
 
         # setup current axis
-        ax = plt.subplot(gs[0],aspect = 'equal');
-        ax2 = plt.subplot(gs[1],aspect = 'equal');   
-        
+        ax = plt.subplot(gs[1],aspect = 'equal');
+
         ### plot left panel - data, separators, and region coloring
         self.plot_data(ax)
         self.plot_all_separators(ax)        
         #self.region_coloring(region = 1,ax = ax)
-        
-        # dress panel
-        ax.set_xlim(minx,maxx)
-        ax.set_ylim(0,1.1)
-        ax.axis('off')
-        
-        ### plot left panel - data, separators, and region coloring
-        self.plot_data(ax2)
-        self.plot_all_separators(ax2)        
-        # self.region_coloring(region = 1,ax = ax2)
-        
-        # dress panel
-        ax2.set_xlim(minx,maxx)
-        ax2.set_ylim(0,1.1)
-        ax2.axis('off')
+
         
         ### determine projections etc.,
-        print (point)
-        
-        point = point.insert(0,1)
-        
-        print (point)
-        
+        ax.scatter(point[0],point[1],c = 'k',edgecolor = 'w',linewidth = 1,s = 90)
+        point = [1] + point
         point = np.asarray(point)
-        
         point.shape = (len(point),1)
-        y = np.dot(self.W,x.T)
+        y = np.dot(self.W,point)
         ind = np.argwhere(y > 0)
         if np.size(ind) > 0:
             ind = [v[0] for v in ind]
+            point = point[1:]
             
             # loop over classifiers and project
             for i in ind:
                 # get weights
                 w = self.W[i]
+                w = np.asarray(w)
+                w.shape = (len(w),1)
                 w_norm = sum([v**2 for v in w[1:]])
                 
                 # make projected point
-                add_on = float(w[0] + [v*a for v,a in zip(point,w[1:])])
+                add_on = w[0] + sum([v*a for v,a in zip(point,w[1:])])
                 add_on /= w_norm
                 proj_point = copy.deepcopy(point)
-                proj_point -= add_on*w
-                
+                proj_point -= add_on*w[1:]
+                                
                 # projected point
-                ax.scatter(proj_point[0],proj_point[1],c = 'k',edgecolor = 'w',linewidth = 1,s = 50)
+                ax.scatter(proj_point[0],proj_point[1],c = self.colors[i],edgecolor = 'k',linewidth = 1,s = 60,zorder = 4,marker = 'X')
+                
+                # dashed line
+                l = np.linspace(proj_point[0],point[0],200)
+                b = np.linspace(proj_point[1],point[1],200)
+                ax.plot(l,b,linewidth = 1,linestyle = '--',color = 'k',zorder = 3)
             
+        # dress panels
+        ax.set_xlim(minx,maxx)
+        ax.set_ylim(minx,maxx)
+        ax.axis('off')
 
     
 

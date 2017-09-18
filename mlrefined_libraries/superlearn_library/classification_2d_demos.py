@@ -137,13 +137,15 @@ class Visualizer:
     
     # produce static image of gradient descent or newton's method run
     def static_fig(self,w_hist,**kwargs):
+        self.w_hist = w_hist
+        
         # determine best weights based on number of misclassifications
         g_count = []
         for j in range(len(w_hist)):
             w = w_hist[j]
             count = self.counting_cost(w)
             g_count.append(count)
-        ind = np.argmin(g_count)[0]
+        ind = np.argmin(g_count)
         w = w_hist[ind]
         
         ##### setup figure to plot #####
