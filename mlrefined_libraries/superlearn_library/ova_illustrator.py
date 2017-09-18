@@ -34,7 +34,7 @@ class Visualizer:
         self.y.shape = (len(self.y),1)
         
         # colors for viewing classification data 'from above'
-        self.colors = np.array([[1,0,0.4], [ 0, 0.4, 1],[0, 1, 0.5],[1, 0.7, 0.5],[0.7, 0.6, 0.5]])
+        self.colors = [[1,0,0.4], [ 0, 0.4, 1],[0, 1, 0.5],[1, 0.7, 0.5],[0.7, 0.6, 0.5],'mediumaquamarine']
 
         #self.colors = ['cornflowerblue','salmon','lime','bisque','mediumaquamarine','b','m','g']
         
@@ -215,7 +215,7 @@ class Visualizer:
         
         plt.show()
         
-    # color regions
+    # color indnividual region using fusion rule
     def show_fusion(self,region):
         # generate input range for viewing range
         minx = min(min(self.x[:,0]),min(self.x[:,1]))
@@ -243,9 +243,61 @@ class Visualizer:
         ax.set_xlim(minx,maxx)
         ax.set_ylim(minx,maxx)
         ax.axis('off')
+        
+    # show coloring of entire space
+    def show_complete_coloring(self):
+        # generate input range for viewing range
+        minx = min(min(self.x[:,0]),min(self.x[:,1]))
+        maxx = max(max(self.x[:,0]),max(self.x[:,1]))
+        gapx = (maxx - minx)*0.1
+        minx -= gapx
+        maxx += gapx
+        
+        # initialize figure
+        fig = plt.figure(figsize = (8,4))
+        gs = gridspec.GridSpec(1, 2,width_ratios = [1,1]) 
+
+        # setup current axis
+        ax = plt.subplot(gs[0],aspect = 'equal');
+        ax2 = plt.subplot(gs[1],aspect = 'equal');
+        
+        # plot panel with all data and separators
+        self.plot_data(ax)
+        self.plot_data(ax2)
+        self.plot_all_separators(ax)
+                
+        ### draw multiclass boundary on right panel
+        r = np.linspace(minx,maxx,2000)
+        w1_vals,w2_vals = np.meshgrid(r,r)
+        w1_vals.shape = (len(r)**2,1)
+        w2_vals.shape = (len(r)**2,1)
+        o = np.ones((len(r)**2,1))
+        h = np.concatenate([o,w1_vals,w2_vals],axis = 1)
+        pts = np.dot(self.W,h.T)
+        g_vals = np.argmax(pts,axis = 0)
+
+        # vals for cost surface
+        w1_vals.shape = (len(r),len(r))
+        w2_vals.shape = (len(r),len(r))
+        g_vals.shape = (len(r),len(r))
+        
+        # plot contour
+        C = len(np.unique(self.y))
+        ax2.contour(w1_vals,w2_vals,g_vals,colors = 'k',levels = range(0,C+1),linewidths = 2.75,zorder = 4)
+        ax2.contourf(w1_vals,w2_vals,g_vals+1,colors = self.colors[:],alpha = 0.2,levels = range(0,C+1))
+        ax.contourf(w1_vals,w2_vals,g_vals+1,colors = self.colors[:],alpha = 0.2,levels = range(0,C+1))
+
+        # dress panel
+        ax.set_xlim(minx,maxx)
+        ax.set_ylim(minx,maxx)
+        ax.axis('off')
+        
+        ax2.set_xlim(minx,maxx)
+        ax2.set_ylim(minx,maxx)
+        ax2.axis('off')     
     
     # point and projection illustration
-    def point_and_projection(self,point):
+    def point_and_projection(self,point1,point2):
         # generate range for viewing limits
         minx = min(min(self.x[:,0]),min(self.x[:,1]))
         maxx = max(max(self.x[:,0]),max(self.x[:,1]))
@@ -254,62 +306,106 @@ class Visualizer:
         maxx += gapx
         
         # initialize figure
-        fig = plt.figure(figsize = (9,5))
-        gs = gridspec.GridSpec(1, 3,width_ratios = [1,5,1],wspace=0.05, hspace=0.0) 
+        fig = plt.figure(figsize = (8,4))
+        gs = gridspec.GridSpec(1, 2,width_ratios = [1,1]) 
 
         # setup current axis
-        ax = plt.subplot(gs[1],aspect = 'equal');
-
+        ax = plt.subplot(gs[0],aspect = 'equal');
+        ax2 = plt.subplot(gs[1],aspect = 'equal');
+        
         ### plot left panel - data, separators, and region coloring
         self.plot_data(ax)
         self.plot_all_separators(ax)        
-        #self.region_coloring(region = 1,ax = ax)
-
         
         ### determine projections etc.,
-        ax.scatter(point[0],point[1],c = 'k',edgecolor = 'w',linewidth = 1,s = 90)
-        point = [1] + point
+        point = [1] + point1
         point = np.asarray(point)
         point.shape = (len(point),1)
         y = np.dot(self.W,point)
         ind = np.argwhere(y > 0)
-        if np.size(ind) > 0:
+        if np.size(ind) == 0:
+            num_classes = len(np.unique(self.y))
+            ind = np.arange(num_classes).tolist()
+        else:
             ind = [v[0] for v in ind]
-            point = point[1:]
-            
-            # loop over classifiers and project
-            for i in ind:
-                # get weights
-                w = self.W[i]
-                w = np.asarray(w)
-                w.shape = (len(w),1)
-                w_norm = sum([v**2 for v in w[1:]])
+        point = point[1:]
+        ax.scatter(point[0],point[1],c = 'k',edgecolor = 'w',linewidth = 1,s = 90)
+
+        # loop over classifiers and project
+        for i in ind:
+            # get weights
+            w = self.W[i]
+            w = np.asarray(w)
+            w.shape = (len(w),1)
+            w_norm = sum([v**2 for v in w[1:]])
+
+            # make projected point
+            add_on = w[0] + sum([v*a for v,a in zip(point,w[1:])])
+            add_on /= w_norm
+            proj_point = copy.deepcopy(point)
+            proj_point -= add_on*w[1:]
+
+            # projected point
+            ax.scatter(proj_point[0],proj_point[1],c = self.colors[i],edgecolor = 'k',linewidth = 1,s = 60,zorder = 4,marker = 'X')
                 
-                # make projected point
-                add_on = w[0] + sum([v*a for v,a in zip(point,w[1:])])
-                add_on /= w_norm
-                proj_point = copy.deepcopy(point)
-                proj_point -= add_on*w[1:]
-                                
-                # projected point
-                ax.scatter(proj_point[0],proj_point[1],c = self.colors[i],edgecolor = 'k',linewidth = 1,s = 60,zorder = 4,marker = 'X')
-                
-                # dashed line
-                l = np.linspace(proj_point[0],point[0],200)
-                b = np.linspace(proj_point[1],point[1],200)
-                ax.plot(l,b,linewidth = 1,linestyle = '--',color = 'k',zorder = 3)
+            # dashed line
+            l = np.linspace(proj_point[0],point[0],200)
+            b = np.linspace(proj_point[1],point[1],200)
+            ax.plot(l,b,linewidth = 1,linestyle = '--',color = 'k',zorder = 3)
             
         # dress panels
         ax.set_xlim(minx,maxx)
         ax.set_ylim(minx,maxx)
         ax.axis('off')
 
-    
+        ### plot left panel - data, separators, and region coloring
+        self.plot_data(ax2)
+        self.plot_all_separators(ax2)        
+        
+        ### determine projections etc.,
+        point = [1] + point2
+        point = np.asarray(point)
+        point.shape = (len(point),1)
+        y = np.dot(self.W,point)
+        ind = np.argwhere(y > 0)
+        if np.size(ind) == 0:
+            num_classes = len(np.unique(self.y))
+            ind = np.arange(num_classes).tolist()
+        else:
+            ind = [v[0] for v in ind]
+        point = point[1:]
+        ax2.scatter(point[0],point[1],c = 'k',edgecolor = 'w',linewidth = 1,s = 90)
 
+        # loop over classifiers and project
+        for i in ind:
+            # get weights
+            w = self.W[i]
+            w = np.asarray(w)
+            w.shape = (len(w),1)
+            w_norm = sum([v**2 for v in w[1:]])
+
+            # make projected point
+            add_on = w[0] + sum([v*a for v,a in zip(point,w[1:])])
+            add_on /= w_norm
+            proj_point = copy.deepcopy(point)
+            proj_point -= add_on*w[1:]
+
+            # projected point
+            ax2.scatter(proj_point[0],proj_point[1],c = self.colors[i],edgecolor = 'k',linewidth = 1,s = 60,zorder = 4,marker = 'X')
+                
+            # dashed line
+            l = np.linspace(proj_point[0],point[0],200)
+            b = np.linspace(proj_point[1],point[1],200)
+            ax2.plot(l,b,linewidth = 1,linestyle = '--',color = 'k',zorder = 3)
+            
+        # dress panels
+        ax2.set_xlim(minx,maxx)
+        ax2.set_ylim(minx,maxx)
+        ax2.axis('off')
 
     ###### utility functions - individual data/separators plotters ###### 
     # plot regions colored by classification
-    def region_coloring(self,region,ax):
+    def region_coloring(self,region,ax):        
         #### color first regions  ####
         # generate input range for functions
         minx = min(min(self.x[:,0]),min(self.x[:,1]))
@@ -464,6 +560,7 @@ class Visualizer:
                 patches.append(polygon)
                 p = PatchCollection(patches, alpha=0.2,color = self.colors[c])
                 ax.add_collection(p)    
+                
                 
     # plot data
     def plot_data(self,ax):
