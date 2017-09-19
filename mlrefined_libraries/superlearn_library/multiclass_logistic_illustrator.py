@@ -103,7 +103,7 @@ class Visualizer:
             cost = self.counting_cost(W)
             cost_evals.append(cost)
         ind = np.argmin(cost_evals)
-        self.W = w_hist[-1]
+        self.W = w_hist[ind]
         
         # generate input range for viewing range
         minx = min(min(self.x[0,:]),min(self.x[1,:]))

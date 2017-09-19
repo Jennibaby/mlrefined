@@ -98,13 +98,6 @@ class MyOptimizers:
         self.grad = compute_grad(self.g)
         self.hess = compute_hess(self.g)  
         
-        # make sure initial w properly formatted
-        if np.size(w) == 1:
-            w = np.asarray(w)
-        else:
-            w = np.asarray([float(s) for s in w])
-        w.shape = (np.size(w),1)
-
         # parse optional arguments        
         max_its = 20
         if 'max_its' in kwargs:
@@ -140,7 +133,7 @@ class MyOptimizers:
                 geval_old = geval_new
                 
             # record current weights
-            w_hist.append([s[0] for s in w])
+            w_hist.append(w)
             
         print ('...optimization complete!')
         time.sleep(1.5)
