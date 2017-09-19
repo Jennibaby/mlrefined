@@ -20,13 +20,6 @@ class MyOptimizers:
         self.g = g
         self.grad = compute_grad(self.g)
         
-        # make sure initial w properly formatted
-        if np.size(w) == 1:
-            w = np.asarray(w)
-        else:
-            w = np.asarray([float(s) for s in w])
-        w.shape = (np.size(w),1)
-        
         # parse optional arguments        
         max_its = 100
         if 'max_its' in kwargs:
@@ -50,7 +43,7 @@ class MyOptimizers:
         for k in range(max_its):   
             # plug in value into func and derivative
             grad_eval = self.grad(w)
-            grad_eval.shape = (len(w),1)
+            grad_eval.shape = np.shape(w)
             
             ### normalized or unnormalized descent step? ###
             if version == 'normalized':
