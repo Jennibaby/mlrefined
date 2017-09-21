@@ -33,6 +33,9 @@ class MyOptimizers:
         steplength_rule = 'none'    
         if 'steplength_rule' in kwargs:
             steplength_rule = kwargs['steplength_rule']
+        projection = 'None'
+        if 'projection' in kwargs:
+            projection = kwargs['projection']
        
         # create container for weight history 
         w_hist = []
@@ -66,6 +69,10 @@ class MyOptimizers:
             
             ### take gradient descent step ###
             w = w - alpha*grad_eval
+
+            ### projection? ###
+            if 'projection' in kwargs:
+                w = projection(w)
             
             # record
             w_hist.append(w)     
