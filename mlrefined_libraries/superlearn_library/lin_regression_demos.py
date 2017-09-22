@@ -126,14 +126,14 @@ class Visualizer:
             # plot connector between points for visualization purposes
             if k == 0:
                 w_new = self.w_hist[k]
-                g_new = self.least_squares(w_new)[0][0]
+                g_new = self.least_squares(w_new)[0]
                 ax2.scatter(k,g_new,s = 0.1,color = 'w',linewidth = 2.5,alpha = 0,zorder = 1)      # plot approx
                 
             if k > 0:
                 w_old = self.w_hist[k-1]
                 w_new = self.w_hist[k]
-                g_old = self.least_squares(w_old)[0][0]
-                g_new = self.least_squares(w_new)[0][0]
+                g_old = self.least_squares(w_old)[0]
+                g_new = self.least_squares(w_new)[0]
      
                 ax2.plot([k-1,k],[g_old,g_new],color = color,linewidth = 2.5,alpha = 1,zorder = 2)      # plot approx
                 ax2.plot([k-1,k],[g_old,g_new],color = 'k',linewidth = 3.5,alpha = 1,zorder = 1)      # plot approx
