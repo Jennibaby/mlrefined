@@ -51,21 +51,24 @@ class Visualizer:
             cost += np.abs(np.sign(y_hat_p - y_p))
         return cost
     
-    # multiclass logistic - base function
-    def standard(self,W):        
+    
+    # multiclass softmaax regularized by the summed length of all normal vectors
+    def multiclass_softmax(self,W):        
         # pre-compute predictions on all points
-        y_hats = W[0,:] + np.dot(self.x.T,W[1:,:])
+        all_evals = W[0,:] + np.dot(self.x.T,W[1:,:])
 
         # compute counting cost
         cost = 0
         for p in range(len(self.y)):
-            # pluck out current true label, predicted label
+            # pluck out current true label
             y_p = int(self.y[p][0]) - 1    # subtract off one due to python indexing
-            max_val = max(y_hats[p,:])
 
-            # update cost
-            cost += max_val - y_hats[p,y_p]
-        return cost
+            # update cost summand
+            cost +=  np.log(np.sum(np.exp(all_evals[p,:]))) - all_evals[p,y_p]
+
+            # return cost with regularizer added
+        return cost + self.lam*np.linalg.norm(W[1:,:],'fro')**2
+
     
     ###### plotting functions ######  
     # show data
@@ -96,6 +99,7 @@ class Visualizer:
         
     # show coloring of entire space
     def show_complete_coloring(self,w_hist,**kwargs):
+        '''
         # determine best set of weights from history
         cost_evals = []
         for i in range(len(w_hist)):
@@ -103,7 +107,29 @@ class Visualizer:
             cost = self.counting_cost(W)
             cost_evals.append(cost)
         ind = np.argmin(cost_evals)
+        '''
+        
+        # or just take last weights
         self.W = w_hist[-1]
+        
+        # initialize figure
+        fig = plt.figure(figsize = (9,4))
+        
+        show_cost = False
+        if 'show_cost' in kwargs:
+            show_cost = kwargs['show_cost']
+        if show_cost == True:   
+            gs = gridspec.GridSpec(1, 3,width_ratios = [1,1,1],height_ratios = [1]) 
+            
+            # create third panel for cost values
+            ax3 = plt.subplot(gs[2],aspect = 'equal')
+            
+        else:
+            gs = gridspec.GridSpec(1, 2,width_ratios = [1,1]) 
+
+        # setup current axis
+        ax = plt.subplot(gs[0],aspect = 'equal');
+        ax2 = plt.subplot(gs[1],aspect = 'equal');
         
         # generate input range for viewing range
         minx = min(min(self.x[0,:]),min(self.x[1,:]))
@@ -111,23 +137,6 @@ class Visualizer:
         gapx = (maxx - minx)*0.1
         minx -= gapx
         maxx += gapx
-        
-        # initialize figure
-        fig = plt.figure(figsize = (8,4))
-        
-        show_cost = False
-        if 'show_cost' in kwargs:
-            show_cost = kwargs['show_cost']
-        if show_cost == True:   
-            gs = gridspec.GridSpec(1, 3,width_ratios = [1,1,1]) 
-            ax3 = plt.subplot(gs[2])
-            ax3.plot(cost_evals)
-        else:
-            gs = gridspec.GridSpec(1, 2,width_ratios = [1,1]) 
-
-        # setup current axis
-        ax = plt.subplot(gs[0],aspect = 'equal');
-        ax2 = plt.subplot(gs[1],aspect = 'equal');
         
         # plot panel with all data and separators
         self.plot_data(ax)
@@ -154,18 +163,67 @@ class Visualizer:
         ax2.contour(w1_vals,w2_vals,g_vals,colors = 'k',levels = range(0,C+1),linewidths = 2.75,zorder = 4)
         ax2.contourf(w1_vals,w2_vals,g_vals+1,colors = self.colors[:],alpha = 0.2,levels = range(0,C+1))
         ax.contourf(w1_vals,w2_vals,g_vals+1,colors = self.colors[:],alpha = 0.2,levels = range(0,C+1))
-
+        
         # dress panel
         ax.set_xlim(minx,maxx)
         ax.set_ylim(minx,maxx)
-        ax.axis('off')
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_yticklabels([])
+        ax.set_xticklabels([])
+        #ax.set_ylabel(r'$x_2$',rotation = 0,fontsize = 12,labelpad = 10)
+        #ax.set_xlabel(r'$x_1$',fontsize = 12)
         
+        ax2.set_xticks([])
+        ax2.set_yticks([])
+        ax2.set_yticklabels([])
+        ax2.set_xticklabels([])
         ax2.set_xlim(minx,maxx)
         ax2.set_ylim(minx,maxx)
-        ax2.axis('off')     
+        #ax2.set_ylabel(r'$x_2$',rotation = 0,fontsize = 12,labelpad = 10)
+        #ax2.set_xlabel(r'$x_1$',fontsize = 12)
+
+        
+        if  show_cost == True: 
+            # compute cost eval history
+            g = kwargs['cost']
+            cost_evals = []
+            for i in range(len(w_hist)):
+                W = w_hist[i]
+                cost = g(W)
+                cost_evals.append(cost)
+     
+            # plot cost path - scale to fit inside same aspect as classification plots
+            num_iterations = len(w_hist)
+            s = np.linspace(minx + gapx,maxx - gapx,num_iterations)
+            scaled_costs = [c/float(max(cost_evals))*(maxx-gapx) - (minx+gapx) for c in cost_evals]
+            ax3.plot(s,scaled_costs,color = 'k',linewidth = 1.5)
+            ax3.set_xlabel('iteration',fontsize = 12)
+            ax3.set_title('cost function plot',fontsize = 12)
+            
+            # rescale number of iterations and cost function value to fit same aspect ratio as other two subplots
+            ax3.set_xlim(minx,maxx)
+            ax3.set_ylim(minx,maxx)
+            
+            ### set tickmarks for both axes - requries re-scaling   
+            # x axis
+            marks = range(0,num_iterations,round(num_iterations/5.0))
+            ax3.set_xticks(s[marks])
+            labels = [item.get_text() for item in ax3.get_xticklabels()]
+            ax3.set_xticklabels(marks)
+            
+            ### y axis
+            r = (max(scaled_costs) - min(scaled_costs))/5.0
+            marks = [min(scaled_costs) + m*r for m in range(6)]
+            ax3.set_yticks(marks)
+            labels = [item.get_text() for item in ax3.get_yticklabels()]
+            
+            r = (max(cost_evals) - min(cost_evals))/5.0
+            marks = [int(min(cost_evals) + m*r) for m in range(6)]
+            ax3.set_yticklabels(marks)
         
     ### compare grad descent runs - given cost to counting cost ###
-    def compare_to_counting(self,cost,**kwargs):
+    def compare_to_counting(self,**kwargs):
         # parse args
         num_runs = 1
         if 'num_runs' in kwargs:
@@ -173,7 +231,7 @@ class Visualizer:
         max_its = 200
         if 'max_its' in kwargs:
             max_its = kwargs['max_its']
-        alpha = 10**-3
+        alpha = 10**-2
         if 'alpha' in kwargs:
             alpha = kwargs['alpha']  
         steplength_rule = 'none'
@@ -187,11 +245,8 @@ class Visualizer:
             algo = kwargs['algo']
          
         #### perform all optimizations ###
-        g = self.standard
-        if cost == 'standard':
-            g = self.standard
-        if cost == 'softmax':
-            g = self.softmax
+        self.lam = 10**-3  # our regularization paramter 
+        g = self.multiclass_softmax
         g_count = self.counting_cost
         
         # create instance of optimizers
@@ -249,7 +304,7 @@ class Visualizer:
         
         ax2.set_xlabel('iteration',fontsize = 13)
         ax2.set_ylabel('cost value',rotation = 90,fontsize = 13)
-        title = cost + ' cost'
+        title = 'multiclass softmax'
         ax2.set_title(title,fontsize = 14)
         ax2.axhline(y=0, color='k',zorder = 0,linewidth = 0.5)
         

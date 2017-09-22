@@ -8,6 +8,7 @@ from autograd import hessian as compute_hess
 import math
 import time
 import copy
+from autograd.util import flatten_func
 
 class MyOptimizers:
     '''
@@ -102,8 +103,12 @@ class MyOptimizers:
     def newtons_method(self,g,w,**kwargs):        
         # create gradient and hessian functions
         self.g = g
-        self.grad = compute_grad(self.g)
-        self.hess = compute_hess(self.g)  
+        
+        # flatten gradient for simpler-written descent loop
+        flat_g, unflatten, w = flatten_func(self.g, w)
+        
+        self.grad = compute_grad(flat_g)
+        self.hess = compute_hess(flat_g)  
         
         # parse optional arguments        
         max_its = 20
@@ -115,11 +120,11 @@ class MyOptimizers:
         
         # create container for weight history 
         w_hist = []
-        w_hist.append(w)
+        w_hist.append(unflatten(w))
         
         # start newton's method loop    
         print ('starting optimization...')
-        geval_old = self.g(w)
+        geval_old = flat_g(w)
         for k in range(max_its):
             # compute gradient and hessian
             grad_val = self.grad(w)
@@ -130,7 +135,7 @@ class MyOptimizers:
             w = w - np.dot(np.linalg.pinv(hess_val + self.epsilon*np.eye(np.size(w))),grad_val)
                     
             # eject from process if reaching singular system
-            geval_new = self.g(w)
+            geval_new = flat_g(w)
             if k > 2 and geval_new > geval_old:
                 print ('singular system reached')
                 time.sleep(1.5)
@@ -140,7 +145,7 @@ class MyOptimizers:
                 geval_old = geval_new
                 
             # record current weights
-            w_hist.append(w)
+            w_hist.append(unflatten(w))
             
         print ('...optimization complete!')
         time.sleep(1.5)
