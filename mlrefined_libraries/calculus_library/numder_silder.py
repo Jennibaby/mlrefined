@@ -35,7 +35,7 @@ class visualizer:
         epsilon_range = np.logspace(0, -17, 18)
 
         # initialize figure
-        fig = plt.figure(figsize = (13,4))
+        fig = plt.figure(figsize = (7,3))
         artist = fig
 
         # create subplot with 3 panels, plot input function in center plot
@@ -83,15 +83,15 @@ class visualizer:
                 # set legend
                 h, l = ax.get_legend_handles_labels()
                 tra = '$\epsilon = 10^{-' + str(k) + '}$'
-                ax.set_title(tra,fontsize=17)
-                ax.legend(bbox_to_anchor=[1, 0.9],loc='center', ncol=1,fontsize = 14)
+                ax.set_title(tra,fontsize=13)
+                ax.legend(bbox_to_anchor=[0, 0.9],loc='center', ncol=1,fontsize = 12)
 
             # fix viewing limits
             ax.set_xlim([-3,3])
             
             # label axes
-            ax.set_xlabel('$w$',fontsize = 18)
-            ax.set_ylabel('$g(w)$',fontsize = 18,rotation = 0,labelpad = 25)
+            ax.set_xlabel('$w$',fontsize = 12)
+            ax.set_ylabel('$g(w)$',fontsize = 12,rotation = 0,labelpad = 25)
                 
             return artist,
 
