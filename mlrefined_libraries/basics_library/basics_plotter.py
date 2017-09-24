@@ -124,7 +124,7 @@ def double_plot(table1,table2,**kwargs):
         fontsize = kwargs['fontsize']
         
     # plot the functions 
-    fig = plt.figure(figsize = (15,4))
+    fig = plt.figure(figsize = (9,3))
     ax1 = fig.add_subplot(121); ax2 = fig.add_subplot(122); 
     plot_type = 'continuous'
     if 'plot_type' in kwargs:
@@ -140,7 +140,7 @@ def double_plot(table1,table2,**kwargs):
     ax1.set_xlabel(xlabel,fontsize = fontsize)
     ax1.set_ylabel(ylabel_1,fontsize = fontsize,rotation = 0,labelpad = 20)
     ax2.set_xlabel(xlabel,fontsize = fontsize)
-    ax2.set_ylabel(ylabel_2,fontsize = fontsize,rotation = 0,labelpad = 20)
+    ax2.set_ylabel(ylabel_2,fontsize = fontsize,rotation = 0,labelpad = 25)
     
     ax1.grid(True, which='both'), ax2.grid(True, which='both')
     ax1.axhline(y=0, color='k', linewidth=1), ax2.axhline(y=0, color='k', linewidth=1)

@@ -32,7 +32,7 @@ class visualizer:
             num_frames = args['num_frames']
             
         # initialize figure
-        fig = plt.figure(figsize = (18,5))
+        fig = plt.figure(figsize = (9,3))
         artist = fig
         ax1 = fig.add_subplot(141)
         ax2 = fig.add_subplot(142)
@@ -64,27 +64,27 @@ class visualizer:
         ggap = g_range*0.5
         ax1.set_ylim([min(g_plot) - ggap,max(g_plot) + ggap])
         ax1.set_yticks([],[])
-        ax1.set_title('original function',fontsize = 15)
+        ax1.set_title('original function',fontsize = 12)
 
         ax2.set_xlim([-3,3])
         g_range = max(g_first_der) - min(g_first_der)
         ggap = g_range*0.5
         ax2.set_ylim([min(g_first_der) - ggap,max(g_first_der) + ggap])
         ax2.set_yticks([],[])
-        ax2.set_title('first derivative',fontsize = 15)
+        ax2.set_title('first derivative',fontsize = 12)
 
         ax3.set_xlim([-3,3])
         g_range = max(g_second_der) - min(g_second_der)
         ggap = g_range*0.5
         ax3.set_ylim([min(g_second_der) - ggap,max(g_second_der) + ggap])
         ax3.set_yticks([],[])
-        ax3.set_title('second derivative',fontsize = 15)
+        ax3.set_title('second derivative',fontsize = 12)
 
         ax4.set_xlim([-3,3])
         g_range = max(g_third_der) - min(g_third_der)
         ggap = g_range*0.5
         ax4.set_ylim([min(g_third_der) - ggap,max(g_third_der) + ggap])
         ax4.set_yticks([],[])
-        ax4.set_title('third derivative',fontsize = 15)
+        ax4.set_title('third derivative',fontsize = 12)
         
         plt.show()

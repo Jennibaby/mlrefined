@@ -51,7 +51,11 @@ def ad_derval_plot(MyTuple,g,**kwargs):
     derivative_table = np.stack((w,dgdw), axis=1) 
 
     # use custom plotter to show both functions
-    baslib.basics_plotter.double_plot(table1 = function_table, table2 = derivative_table,plot_type = 'continuous',xlabel = '$w$',ylabel_1 = '$g(w)$',ylabel_2 = r'$\frac{\mathrm{d}^' + str(order) +  '}{\mathrm{d}w^' + str(order) +  '}g(w)$',fontsize = 14)
+    ylabel_2 = r'$\frac{\mathrm{d}^' + str(order) +  '}{\mathrm{d}w^' + str(order) +  '}g(w)$'
+    if order == 1: # remove superscripts from label
+        ylabel_2 = r'$\frac{\mathrm{d}}{\mathrm{d}w}g(w)$' 
+    
+    baslib.basics_plotter.double_plot(table1 = function_table, table2 = derivative_table,plot_type = 'continuous',xlabel = '$w$',ylabel_1 = '$g(w)$',ylabel_2 = ylabel_2,fontsize = 12)
 
 # plotter for function and derivative equations
 def derval_eq_plot(g,dgdw,**kwargs):

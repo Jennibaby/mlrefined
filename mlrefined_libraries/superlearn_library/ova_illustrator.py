@@ -133,7 +133,10 @@ class Visualizer:
             w_norm = sum([v**2 for v in w[1:]])**(0.5)
             w_1N = [v/w_norm for v in w]
             self.W.append(w_1N)
-        
+            
+        # reshape
+        self.W = np.asarray(self.W)
+        self.W.shape = (num_classes,np.shape(self.x)[1] + 1)
     
     # plotting function for the data and individual separators
     def plot_data_and_subproblem_separators(self):
