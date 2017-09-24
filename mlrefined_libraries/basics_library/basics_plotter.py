@@ -124,8 +124,10 @@ def double_plot(table1,table2,**kwargs):
         fontsize = kwargs['fontsize']
         
     # plot the functions 
-    fig = plt.figure(figsize = (9,3))
-    ax1 = fig.add_subplot(121); ax2 = fig.add_subplot(122); 
+    fig = plt.figure(figsize = (12,4))
+    gs = gridspec.GridSpec(1, 2, width_ratios=[1, 1]) 
+    ax1 = plt.subplot(gs[0]); 
+    ax2 = plt.subplot(gs[1]); 
     plot_type = 'continuous'
     if 'plot_type' in kwargs:
         plot_type = kwargs['plot_type']
@@ -138,9 +140,9 @@ def double_plot(table1,table2,**kwargs):
 
     # plot x and y axes, and clean up
     ax1.set_xlabel(xlabel,fontsize = fontsize)
-    ax1.set_ylabel(ylabel_1,fontsize = fontsize,rotation = 0,labelpad = 20)
+    ax1.set_title(ylabel_1,fontsize = fontsize+3,y=1.04)
     ax2.set_xlabel(xlabel,fontsize = fontsize)
-    ax2.set_ylabel(ylabel_2,fontsize = fontsize,rotation = 0,labelpad = 25)
+    ax2.set_title(ylabel_2,fontsize = fontsize+3,y=1.04)
     
     ax1.grid(True, which='both'), ax2.grid(True, which='both')
     ax1.axhline(y=0, color='k', linewidth=1), ax2.axhline(y=0, color='k', linewidth=1)

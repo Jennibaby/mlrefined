@@ -4,6 +4,7 @@ from mlrefined_libraries.JSAnimation_slider_only import IPython_display_slider_o
 # import standard plotting and animation
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from matplotlib import gridspec
 
 # import autograd functionality
 from autograd import grad as compute_grad   # The only autograd function you may ever need
@@ -32,12 +33,17 @@ class visualizer:
             num_frames = args['num_frames']
             
         # initialize figure
-        fig = plt.figure(figsize = (9,3))
+        fig = plt.figure(figsize = (12,3))
         artist = fig
-        ax1 = fig.add_subplot(141)
-        ax2 = fig.add_subplot(142)
-        ax3 = fig.add_subplot(143)
-        ax4 = fig.add_subplot(144)
+   
+        # create subplot with 3 panels, plot input function in center plot
+        gs = gridspec.GridSpec(1, 4, width_ratios=[1,1,1,1]) 
+  
+        ### draw 2d version ###
+        ax1 = plt.subplot(gs[0]); 
+        ax2 = plt.subplot(gs[1]); 
+        ax3 = plt.subplot(gs[2]); 
+        ax4 = plt.subplot(gs[3]); 
 
         # generate function for plotting on each slide
         w_plot = np.linspace(-3,3,200)       # range to plot over

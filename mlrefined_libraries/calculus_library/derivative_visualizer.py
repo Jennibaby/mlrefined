@@ -5,6 +5,7 @@ from mlrefined_libraries.JSAnimation_slider_only import IPython_display_slider_o
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from IPython.display import clear_output
+from matplotlib import gridspec
 import time
 from matplotlib import gridspec
 from mpl_toolkits.mplot3d import proj3d
