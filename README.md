@@ -1,4 +1,4 @@
-# Machine Learning Refined IPython notebooks, Python and MATLAB files
+# Machine Learning Refined Jupyter notebooks, Python and MATLAB files
 
 See our [blog here](https://jermwatt.github.io/mlrefined/index.html) for interactive versions of the notebooks in this repo. 
 
