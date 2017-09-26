@@ -1,6 +1,5 @@
 # import custom JS animator
 from mlrefined_libraries.JSAnimation_slider_only import IPython_display_slider_only
-import cv2                     # opencv library for computer vision / image processing - for more info visit http://opencv.org/
 import numpy as np
 import time
 
@@ -15,24 +14,20 @@ from IPython.display import clear_output
 from matplotlib.patches import Rectangle, PathPatch
 import mpl_toolkits.mplot3d.art3d as art3d
 
+from PIL import Image
+
 # convert a color image to grayscale and plot both for visual comparison
 def show_color_gray(**kwargs):
     img_path = kwargs['img_path']
     shrink_factor = 1
     if 'shrink_factor' in kwargs:
         shrink_factor = kwargs['shrink_factor']
-
-    # load in image
-    img = cv2.imread(img_path)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)    
-    img = np.asarray(img)
-
-    # downsize image
-    img = cv2.resize(img,None,fx=shrink_factor, fy=shrink_factor, interpolation = cv2.INTER_CUBIC)
-
-    # convert to grayscale
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) 
-
+       
+    img = Image.open(img_path)
+    gray = np.array(img.convert('L'))
+    img = img.resize((round(shrink_factor*np.shape(gray)[1]),round(shrink_factor*np.shape(gray)[0])), Image.ANTIALIAS)
+    gray = np.array(img.convert('L'))
+    
     # create figure to plot
     fig = plt.figure(num=None, figsize=(12,5), dpi=80, facecolor='w', edgecolor='k')
 
@@ -71,16 +66,12 @@ def grayimg_as_function(**kwargs):
     view1 = np.linspace(start_view[0],end_view[0],num_frames)
     view2 = np.linspace(start_view[1],end_view[1],num_frames)
         
-    # load in image
-    img = cv2.imread(img_path)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)    
-    orig_img = img.copy()                                             # make a copy of the image for plotting purposees
-    img = np.asarray(img)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) 
-        
-    # downsize image
-    gray = cv2.resize(gray,None,fx=shrink_factor, fy=shrink_factor, interpolation = cv2.INTER_CUBIC)
-        
+    img = Image.open(img_path)
+    orig_img = img.copy() 
+    gray = np.array(img.convert('L'))
+    img = img.resize((round(shrink_factor*np.shape(gray)[1]),round(shrink_factor*np.shape(gray)[0])), Image.ANTIALIAS)
+    gray = np.array(img.convert('L'))
+  
     # create figure to plot
     fig = plt.figure(num=None, figsize=(7,7), dpi=80, facecolor='w', edgecolor='k')
     artist = fig
@@ -150,18 +141,12 @@ def reveal_imgpatch(**kwargs):
     shrink_factor = 1
     if 'shrink_factor' in kwargs:
         shrink_factor = kwargs['shrink_factor']
+        
+    img = Image.open(img_path)
+    gray = np.array(img.convert('L'))
+    img = img.resize((round(shrink_factor*np.shape(gray)[1]),round(shrink_factor*np.shape(gray)[0])), Image.ANTIALIAS)
+    gray = np.array(img.convert('L'))
     
-    # load in image based on given path
-    img = cv2.imread(img_path)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)    
-    img = np.asarray(img)
-
-    # resize image
-    img = cv2.resize(img,None,fx=shrink_factor, fy=shrink_factor, interpolation = cv2.INTER_CUBIC)
-
-    # convert to grayscale
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) 
-
     # setup figure
     fig = plt.figure(figsize = (18,5))
     gs = gridspec.GridSpec(1, 3, width_ratios=[1,1,1],wspace=0.0, hspace=0.0) 
