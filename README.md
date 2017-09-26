@@ -2,7 +2,11 @@
 
 See our [blog here](https://jermwatt.github.io/mlrefined/index.html) for interactive versions of the notebooks in this repo.  These posts describe a range of topics in machine learning / deep learning including a wide variety of topics in supervised learning, mathematical optimization and automatic differentiation / the back propagation algorithm, and reinforcement learning.
 
-In order to effectively run the Jupyter notebooks contained in this repo on your own machine we strongly recommend using the Anaconda Python 3 distribution [which can be downloaded here](https://www.anaconda.com/download/) since the default install contains most of the library dependencies used here as well as as Jupyter notebook, with the exception of autograd [which can be cloned here](https://github.com/HIPS/autograd).
+In order to effectively run the Jupyter notebooks contained in this repo on your own machine we strongly recommend using the Anaconda Python 3 distribution [which can be downloaded here](https://www.anaconda.com/download/) since the default install contains most of the library dependencies used here as well as as Jupyter notebook, with the exception of [autograd](https://github.com/HIPS/autograd), which can be installed using pip by typing
+
+``pip install autograd``
+
+at the terminal.
 
 To re-run the animations contained withiin these jupyter notebooks you can initialize your jupyter session with the following adjusted command in place of the standard 'jupyter notebook' initialization command - which increases the rate you can plot images to a Jupyter notebook cell
 
