@@ -35,7 +35,7 @@ def draw_it(func,**kwargs):
     g_tracer = func(tracer) 
 
     # construct figure
-    fig = plt.figure(figsize = (9,4))
+    fig = plt.figure(figsize = (9,3))
     artist = fig
     
     # remove whitespace from figure
@@ -104,7 +104,7 @@ def animate_it(func,**kwargs):
     tracer_range = np.concatenate((tracer_range,z),axis=1)
     
     # construct figure
-    fig = plt.figure(figsize = (6,3))
+    fig = plt.figure(figsize = (9,4))
     artist = fig
     
     # remove whitespace from figure

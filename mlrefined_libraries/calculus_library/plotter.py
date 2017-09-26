@@ -86,7 +86,8 @@ def double_2d_plot(func1,func2,**kwargs):
     ylabel_2 = ''
     title1=  ''
     title2 = ''
-    fontsize = 15
+    fontsize = 13
+    color = 'r'
     w = np.linspace(-2,2,1000)
     if 'xlabel' in kwargs:
         xlabel = kwargs['xlabel']
@@ -102,6 +103,8 @@ def double_2d_plot(func1,func2,**kwargs):
         title2 = kwargs['title2']
     if 'w' in kwargs:
         w = kwargs['w']
+    if 'color' in kwargs:
+        color = kwargs['color']
         
     # determine vertical plotting limit
     f1 = func1(w)
@@ -115,8 +118,8 @@ def double_2d_plot(func1,func2,**kwargs):
     # plot the functions 
     fig = plt.figure(figsize = (8,3))
     ax1 = fig.add_subplot(121); ax2 = fig.add_subplot(122);    
-    ax1.plot(w, f1, c='r', linewidth=2,zorder = 3)
-    ax2.plot(w, f2, c='r', linewidth=2,zorder = 3)
+    ax1.plot(w, f1, c=color, linewidth=2,zorder = 3)
+    ax2.plot(w, f2, c=color, linewidth=2,zorder = 3)
 
     # plot x and y axes, and clean up
     ax1.set_xlabel(xlabel,fontsize = fontsize)
@@ -142,6 +145,7 @@ def double_2d3d_plot(func1,func2,**kwargs):
     title1=  ''
     title2 = ''
     fontsize = 15
+    color = 'r'
     if 'fontsize' in kwargs:
         fontsize = kwargs['fontsize']
     if 'title1' in kwargs:
@@ -150,6 +154,8 @@ def double_2d3d_plot(func1,func2,**kwargs):
         title2 = kwargs['title2']
     if 'w' in kwargs:
         w = kwargs['w']
+    if 'color' in kwargs:
+        color = kwargs['color']
         
     # determine vertical plotting limit
     w = np.linspace(-2,2,500)
@@ -172,8 +178,8 @@ def double_2d3d_plot(func1,func2,**kwargs):
     ax2 = plt.subplot(gs[1],projection='3d'); 
     
     
-    ax1.plot(w, f1, c='r', linewidth=2,zorder = 3)
-    ax2.plot_surface(xx, yy, f2, alpha = 0.3,color = 'r',rstride=50, cstride=50,linewidth=2,edgecolor = 'k')
+    ax1.plot(w, f1, c=color, linewidth=2,zorder = 3)
+    ax2.plot_surface(xx, yy, f2, alpha = 0.3,color = color,rstride=50, cstride=50,linewidth=2,edgecolor = 'k')
         
     # plot x and y axes, and clean up
     ax1.set_xlabel(xlabel,fontsize = fontsize)

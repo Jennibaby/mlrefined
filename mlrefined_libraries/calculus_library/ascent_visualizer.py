@@ -414,9 +414,9 @@ def visualize3d(func1,func2,func3,**kwargs):
                textcoords='offset points', ha='center',va='center') 
             
         # plot function        
-        ax.plot_surface(w1_vals, w2_vals, g_vals, alpha = 0.3,color = 'r',rstride=25, cstride=25,linewidth=0.5,edgecolor = 'k',zorder = 2)
+        ax.plot_surface(w1_vals, w2_vals, g_vals, alpha = 0.5,color = 'r',rstride=25, cstride=25,linewidth=1,edgecolor = 'k',zorder = 2)
 
-        ax.plot_surface(w1_vals, w2_vals, g_vals*0, alpha = 0.1,color = 'w',zorder = 1,rstride=25, cstride=25,linewidth=0.3,edgecolor = 'k') 
+        ax.plot_surface(w1_vals, w2_vals, g_vals*0, alpha = 0.3,color = 'w',zorder = 1,rstride=25, cstride=25,linewidth=0.3,edgecolor = 'k') 
 
         # plot x and y axes, and clean up
         ax.grid(False)

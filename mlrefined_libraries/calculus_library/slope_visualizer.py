@@ -57,7 +57,7 @@ def animate_visualize2d(func,num_frames):
             clear_output()
             
         # plot function
-        ax2.plot(w,func(w), c='r', linewidth=2,zorder = 3)
+        ax2.plot(w,func(w), c='lime', linewidth=2,zorder = 3)
      
         ### plot slope as vector
         if abs(func(1) - func(0)) > 0.2:
@@ -75,7 +75,23 @@ def animate_visualize2d(func,num_frames):
                 
                 ax2.annotate('$b$', xy=(2, 1), xytext=(func(1.5)-func(0),0),fontsize=15
             )
-            
+                
+        ### plot negative slope as vector
+        if abs(func(1) - func(0)) >=0:
+            head_width = 0.166*(func(0) - func(1))
+            head_length = -0.25*(func(0) - func(1))
+
+            # annotate arrow and annotation
+            if func(1)-func(0) >= 0:
+                ax2.arrow(0, 0, func(0)-func(1),0, head_width=head_width, head_length=head_length, fc='r', ec='r',linewidth=2.5,zorder = 3)
+        
+                ax2.annotate('$-b$', xy=(2, 1), xytext=(func(0) - func(1) - head_length - 0.7,0),fontsize=15)
+        
+            elif func(1)-func(0) < 0:
+                ax2.arrow(0, 0, func(0)-func(1),0, head_width=-head_width, head_length=-head_length, fc='r', ec='r',linewidth=2.5,zorder = 3)
+                
+                ax2.annotate('$-b$', xy=(2, 1), xytext=( func(0) - func(1+0.3),0),fontsize=15)      
+                    
         # set viewing limits
         wgap = (max(w) - min(w))*0.3
         ax2.set_xlim([-5,5])
@@ -166,7 +182,7 @@ def animate_visualize3d(func,**kwargs):
         g_vals.shape = (len(w_in),len(w_in))
         
         ### plot function and z=0 for visualization ###
-        ax.plot_surface(w1_vals, w2_vals, g_vals, alpha = 0.3,color = 'r',rstride=25, cstride=25,linewidth=0.7,edgecolor = 'k',zorder = 2)
+        ax.plot_surface(w1_vals, w2_vals, g_vals, alpha = 0.3,color = 'lime',rstride=25, cstride=25,linewidth=0.7,edgecolor = 'k',zorder = 2)
 
         ax.plot_surface(w1_vals, w2_vals, g_vals*0, alpha = 0.1,color = 'w',zorder = 1,rstride=25, cstride=25,linewidth=0.5,edgecolor = 'k') 
         
@@ -181,7 +197,7 @@ def animate_visualize3d(func,**kwargs):
             
             # label arrow
             q = func([1.3,0]) - func([0,0])
-            annotate3D(ax, s='$(a_1,0)$', xyz=[q,0,0], fontsize=14, xytext=(-3,3),
+            annotate3D(ax, s='$(b_1,0)$', xyz=[q,0,0], fontsize=11, xytext=(-3,3),
                textcoords='offset points', ha='center',va='center') 
 
         t = func([0,1]) - func([0,0])
@@ -193,7 +209,7 @@ def animate_visualize3d(func,**kwargs):
             
             # label arrow
             q = func([0,1.3]) - func([0,0])
-            annotate3D(ax, s='$(0,a_2)$', xyz=[0,q,0], fontsize=14, xytext=(-3,3),
+            annotate3D(ax, s='$(0,b_2)$', xyz=[0,q,0], fontsize=11, xytext=(-3,3),
                textcoords='offset points', ha='center',va='center') 
                 
         # full gradient
@@ -204,9 +220,44 @@ def animate_visualize3d(func,**kwargs):
             
             s = func([1.2,0]) - func([0,0])
             t = func([0,1.2]) - func([0,0])
-            annotate3D(ax, s='$(a_1,a_2)$', xyz=[s,t,0], fontsize=14, xytext=(-3,3),
+            annotate3D(ax, s='$(b_1,b_2)$', xyz=[s,t,0], fontsize=11, xytext=(-3,3),
                textcoords='offset points', ha='center',va='center') 
+            
+        # full negative gradient
+        if abs(s) > 0.5 and abs(t) > 0.5:
+            a = Arrow3D([0, - (func([1,0])- func([0,0]))], [0, - (func([0,1])- func([0,0]))], [0, 0], mutation_scale=20,
+                        lw=2, arrowstyle="-|>", color="r")
+            ax.add_artist(a)  
+            an = 1
+            s = - (func([an+0.2,0]) - func([0,0]))
+            t = - (func([0,an+0.2]) - func([0,0]))
+            name = '$-(b_1,b_2)$'
+            annotate3D(ax, s=name, xyz=[s,t,0], fontsize= 11, xytext=(-3,3),textcoords='offset points', ha='center',va='center') 
 
+        # draw negative coordinate-wise slope vector        
+        if abs(s) > 0.5 and abs(t) < 0.5:
+            a = Arrow3D([0, - (func([1,0])- func([0,0]))], [0, - (func([0,1])- func([0,0]))], [0, 0], mutation_scale=20,
+                        lw=2, arrowstyle="-|>", color="r")
+            ax.add_artist(a)  
+            an = 1.2
+            s = - (func([an+0.2,0]) - func([0,0]))
+            t = - (func([0,an+0.2]) - func([0,0]))
+            name = '$-(b_1,0)$'
+            annotate3D(ax, s=name, xyz=[s,t,0], fontsize=11, xytext=(-3,3),textcoords='offset points', ha='center',va='center') 
+ 
+            
+        # draw negative coordinate-wise slope vector        
+        if abs(t) > 0.5 and abs(s) < 0.5:
+            a = Arrow3D([0, - (func([1,0])- func([0,0]))], [0, - (func([0,1])- func([0,0]))], [0, 0], mutation_scale=20,
+                        lw=2, arrowstyle="-|>", color="r")
+            ax.add_artist(a)  
+            an = 1.2
+            s = - (func([an+0.2,0]) - func([0,0]))
+            t = - (func([0,an+0.2]) - func([0,0]))
+            name = '$-(0,b_2)$'
+            annotate3D(ax, s=name, xyz=[s,t,0], fontsize=11, xytext=(-3,3),textcoords='offset points', ha='center',va='center') 
+           
+            
         ### clean up plot ###
         # plot x and y axes, and clean up
         ax.grid(False)
@@ -242,26 +293,30 @@ def animate_visualize3d(func,**kwargs):
         fontsize = 15
         ax.set_xlabel(r'$w_1$',fontsize = fontsize,labelpad = -10)
         ax.set_ylabel(r'$w_2$',fontsize = fontsize,rotation = 0,labelpad=-10)
+        
+        
         sig = '+'
-        if slope[1] < 0:
+        if slope[0] < 0:
             sig = '-'
         sig2 = '+'
-        if bias < 0:
+        if slope[1] < 0:
             sig2 = '-'
+       
             
-        part1 = '{:.1f}'.format(slope[0]) + 'w_1 '
+        part2 = sig + '{:.1f}'.format(abs(slope[0])) + 'w_1 '
         if abs(slope[0]) < 0.01:
-            part1 = ''
-            
-        part2 = '{:.1f}'.format(abs(slope[1])) + 'w_2'
-        if abs(slope[1]) < 0.01:
             part2 = ''
+            
+        part3 = sig2 + '{:.1f}'.format(abs(slope[1])) + 'w_2'
+        if abs(slope[1]) < 0.01:
+            part3 = ''
         
-        part3 = sig2 + '{:.1f}'.format(abs(bias))
+        part1 = '{:.1f}'.format(abs(bias))
         if abs(bias) < 0.01:
             part3 = ''
         
-        ax.set_title(r'$g(w_1,w_2) = ' + part1 + sig + part2  + part3 + '$' ,fontsize = 13)
+        
+        ax.set_title(r'$g(w_1,w_2) = ' + part1 + part2  + part3 + '$' ,fontsize = 13)
 
         return artist,
         
@@ -304,10 +359,10 @@ def visualize2d(func,**kwargs):
     
         # annotate arrow
         if func(1) > 0.1:
-            ax2.annotate('$a$', xy=(2, 1), xytext=(func(1.3),0),fontsize=15
+            ax2.annotate('$b$', xy=(2, 1), xytext=(func(1.3),0),fontsize=15
             )
         elif func(1) < -0.1:
-            ax2.annotate('$a$', xy=(2, 1), xytext=(func(1.5),0),fontsize=15
+            ax2.annotate('$b$', xy=(2, 1), xytext=(func(1.5),0),fontsize=15
             )
             
     # set viewing limits
@@ -383,6 +438,9 @@ def visualize3d(func1,func2,func3,**kwargs):
             
         # add arrow for slope visualization
         s = func([1,0]) - func([0,0])
+        t = func([0,1]) - func([0,0])
+
+        # plot coordinate-wise slope vector
         if abs(s) > 0.5:
             # draw arrow
             a = Arrow3D([0, s], [0, 0], [0, 0], mutation_scale=20,
@@ -391,10 +449,21 @@ def visualize3d(func1,func2,func3,**kwargs):
             
             # label arrow
             s = func([1.5,0]) - func([0,0])
-            annotate3D(ax, s='$(a_1,0)$', xyz=[s,0,0], fontsize=14, xytext=(-3,3),
+            annotate3D(ax, s='$(b_1,0)$', xyz=[s,0,0], fontsize=14, xytext=(-3,3),
                textcoords='offset points', ha='center',va='center') 
-
-        t = func([0,1]) - func([0,0])
+            
+        # draw negative coordinate-wise slope vector        
+        if abs(s) > 0.5 and abs(t) < 0.5:
+            a = Arrow3D([0, - (func([1,0])- func([0,0]))], [0, - (func([0,1])- func([0,0]))], [0, 0], mutation_scale=20,
+                        lw=2, arrowstyle="-|>", color="r")
+            ax.add_artist(a)  
+            an = 1.2
+            s = - (func([an+0.2,0]) - func([0,0]))
+            t = - (func([0,an+0.2]) - func([0,0]))
+            name = '$-(b_1,0)$'
+            annotate3D(ax, s=name, xyz=[s,t,0], fontsize=14, xytext=(-3,3),textcoords='offset points', ha='center',va='center') 
+ 
+        # plot coordinate-wise slope vector
         if abs(t) > 0.5:
             # draw arrow
             a = Arrow3D([0, 0], [0, t], [0, 0], mutation_scale=20,
@@ -403,8 +472,20 @@ def visualize3d(func1,func2,func3,**kwargs):
             
             # label arrow
             t = func([0,1.5]) - func([0,0])
-            annotate3D(ax, s='$(0,a_2)$', xyz=[0,t,0], fontsize=14, xytext=(-3,3),
+            annotate3D(ax, s='$(0,b_2)$', xyz=[0,t,0], fontsize=14, xytext=(-3,3),
                textcoords='offset points', ha='center',va='center') 
+            
+        # draw negative coordinate-wise slope vector        
+        if abs(t) > 0.5 and abs(s) < 0.5:
+            a = Arrow3D([0, - (func([1,0])- func([0,0]))], [0, - (func([0,1])- func([0,0]))], [0, 0], mutation_scale=20,
+                        lw=2, arrowstyle="-|>", color="r")
+            ax.add_artist(a)  
+            an = 1.2
+            s = - (func([an+0.2,0]) - func([0,0]))
+            t = - (func([0,an+0.2]) - func([0,0]))
+            name = '$-(0,b_2)$'
+            annotate3D(ax, s=name, xyz=[s,t,0], fontsize=14, xytext=(-3,3),textcoords='offset points', ha='center',va='center') 
+         
                 
         # full gradient
         if abs(s) > 0.5 and abs(t) > 0.5:
@@ -414,11 +495,22 @@ def visualize3d(func1,func2,func3,**kwargs):
             
             b = func([1.2,0]) - func([0,0])
             c = func([0,1.2]) - func([0,0])
-            annotate3D(ax, s='$(a_1,a_2)$', xyz=[b,c,0], fontsize=14, xytext=(-3,3),
+            annotate3D(ax, s='$(b_1,b_2)$', xyz=[b,c,0], fontsize=14, xytext=(-3,3),
                textcoords='offset points', ha='center',va='center') 
-            
+    
+        # full negative gradient
+        if abs(s) > 0.5 and abs(t) > 0.5:
+            a = Arrow3D([0, - (func([1,0])- func([0,0]))], [0, - (func([0,1])- func([0,0]))], [0, 0], mutation_scale=20,
+                        lw=2, arrowstyle="-|>", color="r")
+            ax.add_artist(a)  
+            an = 1
+            s = - (func([an+0.2,0]) - func([0,0]))
+            t = - (func([0,an+0.2]) - func([0,0]))
+            name = '$-(b_1,b_2)$'
+            annotate3D(ax, s=name, xyz=[s,t,0], fontsize=14, xytext=(-3,3),textcoords='offset points', ha='center',va='center') 
+ 
         # plot function        
-        ax.plot_surface(w1_vals, w2_vals, g_vals, alpha = 0.3,color = 'r',rstride=25, cstride=25,linewidth=0.5,edgecolor = 'k',zorder = 2)
+        ax.plot_surface(w1_vals, w2_vals, g_vals, alpha = 0.3,color = 'lime',rstride=25, cstride=25,linewidth=0.5,edgecolor = 'k',zorder = 2)
 
         ax.plot_surface(w1_vals, w2_vals, g_vals*0, alpha = 0.1,color = 'w',zorder = 1,rstride=25, cstride=25,linewidth=0.3,edgecolor = 'k') 
 
