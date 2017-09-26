@@ -461,7 +461,7 @@ class quadratic_3d_flexer:
             ggap = g_range*0.5
 
             # plot original function
-            ax.plot_surface(w1_vals,w2_vals,g_vals,alpha = 0.3,color = 'r',rstride=100, cstride=100,linewidth=1,edgecolor = 'k') 
+            ax.plot_surface(w1_vals,w2_vals,g_vals,alpha = 0.3,color = 'lime',rstride=100, cstride=100,linewidth=1,edgecolor = 'k') 
 
             # clean up plotting area
             ax.set_title(set_title,fontsize = 15)
@@ -530,6 +530,9 @@ class quadratic_3d_rotater:
         num_slides = 100
         if 'num_slides' in kwargs:
             num_frames = kwargs['num_slides']
+        color = 'r'
+        if 'color' in kwargs:
+            color = kwargs['color']
             
         theta_values = np.linspace(0,180,num_frames)
         
@@ -566,7 +569,7 @@ class quadratic_3d_rotater:
                 clear_output()
 
             # plot original function
-            ax.plot_surface(w1_vals_orig,w2_vals_orig,g_vals,alpha = 0.3,color = 'r',rstride=100, cstride=100,linewidth=1,edgecolor = 'k') 
+            ax.plot_surface(w1_vals_orig,w2_vals_orig,g_vals,alpha = 0.3,color = color,rstride=100, cstride=100,linewidth=1,edgecolor = 'k') 
             # rotate input
             theta = theta_values[k]
             ax.view_init(view[0],view[1] + theta)

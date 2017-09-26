@@ -41,7 +41,7 @@ class visualizer:
         w_val = kwargs['w_val']
         
         # initialize figure
-        fig = plt.figure(figsize = (12,6))
+        fig = plt.figure(figsize = (9,3))
 
         # create subplot with 3 panels, plot input function in center plot
         gs = gridspec.GridSpec(1, 3, width_ratios=[1,2, 1]) 

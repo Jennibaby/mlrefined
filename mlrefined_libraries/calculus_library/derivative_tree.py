@@ -42,7 +42,7 @@ def draw_it(func,**kwargs):
     hess_vals = [hess(s) for s in w_vals.T]
     
     # define figure
-    fig = plt.figure(figsize = (12,6))
+    fig = plt.figure(figsize = (9,6))
 
     ###  plot original function ###
     ax1 = plt.subplot2grid((3, 6), (0, 3), colspan=1,projection='3d')

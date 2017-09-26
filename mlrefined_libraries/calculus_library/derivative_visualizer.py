@@ -91,7 +91,7 @@ def compare_2d3d(func1,func2,**kwargs):
     ax1.set_ylim([min(min(g_plot) - ggap,-4),max(max(g_plot) + ggap,0.5)])
 
     # label axes
-    ax1.set_xlabel('$w$',fontsize = 12,labelpad = -60)
+    ax1.set_xlabel('$w$',fontsize = 12,labelpad = -50)
     ax1.set_ylabel('$g(w)$',fontsize = 25,rotation = 0,labelpad = 50)
     
     ax1.grid(False)
