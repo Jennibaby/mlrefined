@@ -4,7 +4,7 @@ See our [blog here](https://jermwatt.github.io/mlrefined/index.html) for interac
 
 In order to effectively run the Jupyter notebooks contained in this repo on your own machine we strongly recommend using the Anaconda Python 3 distribution [which can be downloaded here](https://www.anaconda.com/download/) since the default install contains most of the library dependencies used here as well as as Jupyter notebook, with the exception of autograd [which can be cloned here](https://github.com/HIPS/autograd).
 
-To re-run the animations contained withiin these jupyter notebooks you can initialize your jupyter session with the following adjusted command in place of the standard 'jupyter notebook' initialization command - which increases the rate you can plot images to a jupyter notebook cell
+To re-run the animations contained withiin these jupyter notebooks you can initialize your jupyter session with the following adjusted command in place of the standard 'jupyter notebook' initialization command - which increases the rate you can plot images to a Jupyter notebook cell
 
 jupyter notebook --NotebookApp.iopub_data_rate_limit=10000000000 
         
