@@ -68,12 +68,12 @@ def animate_visualize2d(func,num_frames):
             if func(1)-func(0) > 0.1:
                 ax2.arrow(0, 0, func(1)-func(0),0, head_width=head_width, head_length=head_length, fc='k', ec='k',linewidth=2.5,zorder = 3)
                 
-                ax2.annotate('$a$', xy=(2, 1), xytext=(func(1.3)-func(0),0),fontsize=15
+                ax2.annotate('$b$', xy=(2, 1), xytext=(func(1.3)-func(0),0),fontsize=15
             )
             elif func(1)-func(0) < -0.1:
                 ax2.arrow(0, 0, func(1)-func(0),0, head_width=-head_width, head_length=-head_length, fc='k', ec='k',linewidth=2.5,zorder = 3)
                 
-                ax2.annotate('$a$', xy=(2, 1), xytext=(func(1.5)-func(0),0),fontsize=15
+                ax2.annotate('$b$', xy=(2, 1), xytext=(func(1.5)-func(0),0),fontsize=15
             )
             
         # set viewing limits
@@ -87,7 +87,11 @@ def animate_visualize2d(func,num_frames):
         # label plot
         ax2.set_xlabel('$w$',fontsize = 15)
         ax2.set_ylabel('$g(w)$',fontsize = 15,rotation = 0,labelpad = 20)
-        ax2.set_title(r'$g(w) = {:.1f}'.format(slope) + 'w + {:.1f}'.format(func_orig(0))+'$',fontsize = 18)
+        title = r'$g(w) = {:.1f}'.format(func_orig(0)) + '+ {:.1f}'.format(slope)+'w$'
+        if slope < 0:
+            title = r'$g(w) = {:.1f}'.format(func_orig(0)) + '{:.1f}'.format(slope)+'w$'
+
+        ax2.set_title(title,fontsize = 18)
         return artist,
         
     anim = animation.FuncAnimation(fig, animate,frames=num_frames, interval=num_frames, blit=True)
