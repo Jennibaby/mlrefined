@@ -66,7 +66,7 @@ class Visualizer:
             # update cost summand
             cost +=  np.log(np.sum(np.exp(all_evals[p,:]))) - all_evals[p,y_p]
 
-            # return cost with regularizer added
+        # return cost with regularizer added
         return cost + self.lam*np.linalg.norm(W[1:,:],'fro')**2
 
     
@@ -221,7 +221,111 @@ class Visualizer:
             r = (max(cost_evals) - min(cost_evals))/5.0
             marks = [int(min(cost_evals) + m*r) for m in range(6)]
             ax3.set_yticklabels(marks)
+   
+
+    # show coloring of entire space
+    def show_surface_fit(self,w_hist,view,**kwargs):
+        '''
+        # determine best set of weights from history
+        cost_evals = []
+        for i in range(len(w_hist)):
+            W = w_hist[i]
+            cost = self.counting_cost(W)
+            cost_evals.append(cost)
+        ind = np.argmin(cost_evals)
+        '''
         
+        # or just take last weights
+        self.W = w_hist[-1]
+        
+        # initialize figure
+        fig = plt.figure(figsize = (9,4))
+        gs = gridspec.GridSpec(1, 2,width_ratios = [1,1]) 
+            
+        # setup current axis
+        ax = plt.subplot(gs[0],projection = '3d');
+        ax2 = plt.subplot(gs[1],aspect = 'equal');
+        
+        # load in args
+        zplane = 'on'
+        if 'zplane' in kwargs:
+            zplane = kwargs['zplane']
+       
+        # generate input range for viewing range
+        minx = min(min(self.x[0,:]),min(self.x[1,:]))
+        maxx = max(max(self.x[0,:]),max(self.x[1,:]))
+        gapx = (maxx - minx)*0.1
+        minx -= gapx
+        maxx += gapx
+        
+        # plot panel with all data and separators
+        # scatter points in both panels
+        class_nums = np.unique(self.y)
+        C = len(class_nums)
+
+        # plot data in right panel from above
+        self.plot_data(ax2)
+                
+        ### draw multiclass boundary on right panel
+        r = np.linspace(minx,maxx,1000)
+        w1_vals,w2_vals = np.meshgrid(r,r)
+        w1_vals.shape = (len(r)**2,1)
+        w2_vals.shape = (len(r)**2,1)
+        o = np.ones((len(r)**2,1))
+        h = np.concatenate([o,w1_vals,w2_vals],axis = 1)
+        pts = np.dot(h,self.W)
+        g_vals = np.argmax(pts,axis = 1) 
+
+        # vals for cost surface
+        w1_vals.shape = (len(r),len(r))
+        w2_vals.shape = (len(r),len(r))
+        g_vals.shape = (len(r),len(r))
+        
+        # plot contour in right panel
+        C = len(np.unique(self.y))
+        ax2.contour(w1_vals,w2_vals,g_vals,colors = 'k',levels = range(0,C+1),linewidths = 2.75,zorder = 4)
+        ax2.contourf(w1_vals,w2_vals,g_vals+1,colors = self.colors[:],alpha = 0.2,levels = range(0,C+1))
+        
+        # plot surface and z-plane contour in left panel
+        g_vals += 1
+        ax.plot_surface(w1_vals,w2_vals,g_vals-0.1,alpha = 0.3,color = 'w',rstride=50, cstride=50,linewidth=0.5,edgecolor = 'k',zorder = 0) 
+        
+        # plot zplane = 0 in left 3d panel - showing intersection of regressor with z = 0 (i.e., its contour, the separator, in the 3d plot too)?
+        if zplane == 'on':
+            ax.plot_surface(w1_vals,w2_vals,g_vals*0,alpha = 0.1) 
+            
+            # loop over each class and color in z-plane
+            for c in class_nums:
+                # plot separator curve in left plot z plane
+                ax.contour(w1_vals,w2_vals,g_vals - c,colors = 'k',levels = [0],linewidths = 3,zorder = 1)
+                        
+                # color parts of plane with correct colors
+                ax.contourf(w1_vals,w2_vals, g_vals - 0.5 - c + 1 ,colors = self.colors[(int(c)-1):],alpha = 0.1,levels = range(0,2))
+                
+                
+        # scatter points in 3d
+        for c in range(C):
+            ind = np.argwhere(self.y == class_nums[c])
+            ind = [v[0] for v in ind]
+            ax.scatter(self.x[0,ind],self.x[1,ind],self.y[ind],s = 80,color = self.colors[c],edgecolor = 'k',linewidth = 1.5,zorder = 3)
+            
+        # dress panel
+        ax.view_init(view[0],view[1])
+        ax.axis('off')
+        ax.set_xlim(minx,maxx)
+        ax.set_ylim(minx,maxx)
+        ax.set_zlim(-0.5,C+0.5)
+        
+        ax2.set_xticks([])
+        ax2.set_yticks([])
+        ax2.set_yticklabels([])
+        ax2.set_xticklabels([])
+        ax2.set_xlim(minx,maxx)
+        ax2.set_ylim(minx,maxx)
+        #ax2.set_ylabel(r'$x_2$',rotation = 0,fontsize = 12,labelpad = 10)
+        #ax2.set_xlabel(r'$x_1$',fontsize = 12)
+
+
     ### compare grad descent runs - given cost to counting cost ###
     def compare_to_counting(self,**kwargs):
         # parse args
